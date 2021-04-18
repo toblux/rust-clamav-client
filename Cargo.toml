@@ -1,0 +1,10 @@
+[package]
+name = "clamav-client"
+version = "0.1.0"
+authors = ["Thorsten Blum"]
+edition = "2018"
+repository = "https://github.com/toblux/rust-clamav-client"
+description = "ClamAV client library"
+readme = "README.md"
+license = "MIT"
+keywords = ["clamav", "clamd", "anitvirus"]
