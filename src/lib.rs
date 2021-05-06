@@ -1,15 +1,18 @@
 use std::{
     fs::File,
-    io::{Read, Result as IoResult, Write},
+    io::{Error, Read, Write},
     net::{TcpStream, ToSocketAddrs},
     path::Path,
     result::Result,
     str::{from_utf8, Utf8Error},
 };
 
+type IoResult = Result<Vec<u8>, Error>;
+type Utf8Result = Result<bool, Utf8Error>;
+
 const DEFAULT_CHUNK_SIZE: u32 = 4096; // 4 kibibytes
 
-fn ping<RW>(mut stream: RW) -> IoResult<Vec<u8>>
+fn ping<RW>(mut stream: RW) -> IoResult
 where
     RW: Read + Write,
 {
@@ -21,7 +24,7 @@ where
     Ok(response)
 }
 
-fn scan<P, RW>(file_path: P, chunk_size: Option<u32>, mut stream: RW) -> IoResult<Vec<u8>>
+fn scan<P, RW>(file_path: P, chunk_size: Option<u32>, mut stream: RW) -> IoResult
 where
     P: AsRef<Path>,
     RW: Read + Write,
@@ -48,7 +51,7 @@ where
 }
 
 #[cfg(target_family = "unix")]
-pub fn ping_socket<P>(socket_path: P) -> IoResult<Vec<u8>>
+pub fn ping_socket<P>(socket_path: P) -> IoResult
 where
     P: AsRef<Path>,
 {
@@ -59,7 +62,7 @@ where
 }
 
 #[cfg(target_family = "unix")]
-pub fn scan_socket<P>(file_path: P, socket_path: P, chunk_size: Option<u32>) -> IoResult<Vec<u8>>
+pub fn scan_socket<P>(file_path: P, socket_path: P, chunk_size: Option<u32>) -> IoResult
 where
     P: AsRef<Path>,
 {
@@ -69,7 +72,7 @@ where
     scan(file_path, chunk_size, stream)
 }
 
-pub fn ping_tcp<A>(host_address: A) -> IoResult<Vec<u8>>
+pub fn ping_tcp<A>(host_address: A) -> IoResult
 where
     A: ToSocketAddrs,
 {
@@ -77,7 +80,7 @@ where
     ping(stream)
 }
 
-pub fn scan_tcp<P, A>(file_path: P, host_address: A, chunk_size: Option<u32>) -> IoResult<Vec<u8>>
+pub fn scan_tcp<P, A>(file_path: P, host_address: A, chunk_size: Option<u32>) -> IoResult
 where
     A: ToSocketAddrs,
     P: AsRef<Path>,
@@ -86,7 +89,7 @@ where
     scan(file_path, chunk_size, stream)
 }
 
-pub fn clean(response: &[u8]) -> Result<bool, Utf8Error> {
+pub fn clean(response: &[u8]) -> Utf8Result {
     let response = from_utf8(response)?;
     Ok(response.contains("OK") && !response.contains("FOUND"))
 }
