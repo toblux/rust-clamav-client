@@ -3,7 +3,7 @@ use clamav_client::*;
 #[cfg(target_family = "unix")]
 const TEST_SOCKET_PATH: &str = "/tmp/clamd.socket";
 const TEST_HOST_ADDRESS: &str = "localhost:3310";
-const TEST_FILE_PATH: &str = "eicar.txt";
+const TEST_FILE_PATH: &str = "tests/eicar.txt";
 
 const PONG_RESPONSE: &[u8] = b"PONG\0";
 const EICAR_FOUND_RESPONSE: &[u8] = b"stream: Eicar-Signature FOUND\0";
