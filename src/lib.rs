@@ -1,6 +1,3 @@
-#[cfg(target_family = "unix")]
-use std::os::unix::net::UnixStream;
-
 use std::{
     fs::File,
     io::{Read, Result as IoResult, Write},
@@ -34,9 +31,8 @@ where
     let chunk_size = chunk_size.unwrap_or(DEFAULT_CHUNK_SIZE);
     let mut file = File::open(file_path)?;
     let mut buffer = vec![0; chunk_size as usize];
-    let mut len;
     loop {
-        len = file.read(&mut buffer[..])?;
+        let len = file.read(&mut buffer[..])?;
         if len != 0 {
             stream.write_all(&(len as u32).to_be_bytes())?;
             stream.write_all(&buffer[0..len])?;
@@ -56,6 +52,8 @@ pub fn ping_socket<P>(socket_path: P) -> IoResult<Vec<u8>>
 where
     P: AsRef<Path>,
 {
+    use std::os::unix::net::UnixStream;
+
     let stream = UnixStream::connect(socket_path)?;
     ping(stream)
 }
@@ -65,6 +63,8 @@ pub fn scan_socket<P>(file_path: P, socket_path: P, chunk_size: Option<u32>) -> 
 where
     P: AsRef<Path>,
 {
+    use std::os::unix::net::UnixStream;
+
     let stream = UnixStream::connect(socket_path)?;
     scan(file_path, chunk_size, stream)
 }
