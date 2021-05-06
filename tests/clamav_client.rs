@@ -37,7 +37,7 @@ fn test_scan_socket() {
     assert_eq!(&response, EICAR_FOUND_RESPONSE);
 
     let is_clean = clean(&response);
-    assert!(matches!(is_clean, Ok(false)));
+    assert_eq!(is_clean, Ok(false));
 }
 
 #[test]
@@ -50,5 +50,5 @@ fn test_scan_tcp() {
     assert_eq!(&response, EICAR_FOUND_RESPONSE);
 
     let is_clean = clean(&response);
-    assert!(matches!(is_clean, Ok(false)));
+    assert_eq!(is_clean, Ok(false));
 }
