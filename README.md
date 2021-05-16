@@ -1,11 +1,19 @@
 # Rust ClamAV Client
 
-Please note:
+A simple ClamAV client to stream files to the ClamAV daemon [clamd](https://linux.die.net/man/8/clamd) for antivirus scanning.
 
-- The functions `ping_socket` and `scan_socket` are only available on Unix platforms.
-- The default [clamd](https://linux.die.net/man/8/clamd) configuration usually rejects TCP connections for security reasons. Please enable TCP in your ClamAV daemon if you want to use the functions `ping_tcp` and `scan_tcp`.
+Please note: The functions `ping_socket` and `scan_socket` are only available on Unix platforms.
 
-## Example
+## Installation
+
+Add this to your `Cargo.toml`:
+
+```toml
+[dependencies]
+clamav-client = "0.1.3"
+```
+
+## Usage
 
 ```rust
 let clamd_host_address = "localhost:3310";
