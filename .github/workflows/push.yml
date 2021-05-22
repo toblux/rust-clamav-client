@@ -1,0 +1,21 @@
+name: Run tests
+on: push
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+      - name: Install ClamAV daemon
+        run: sudo apt-get install clamav-daemon
+      - name: Update ClamAV virus databases
+        run: |
+          sudo systemctl stop clamav-freshclam
+          sudo freshclam
+      - name: Start clamd
+        run: clamd --config-file=.github/clamd.conf
+      - name: Run tests
+        run: cargo test
+      - name: Shutdown clamd
+        run: echo SHUTDOWN | nc localhost 3310
