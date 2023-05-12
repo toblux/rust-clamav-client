@@ -2,7 +2,7 @@
 
 A simple ClamAV client to stream files to [clamd](https://linux.die.net/man/8/clamd) for antivirus scanning.
 
-Please note: The functions `ping_socket` and `scan_socket` are only available on Unix platforms.
+Please note: The functions `ping_socket`, `scan_file_socket`, and `scan_buffer_socket` are only available on Unix platforms.
 
 ## Installation
 
@@ -10,7 +10,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-clamav-client = "0.1.3"
+clamav-client = "0.2.0"
 ```
 
 ## Usage
@@ -30,12 +30,29 @@ if !clamd_available {
 }
 
 // Scan file for viruses
-let file_path = "virus.txt";
-let scan_response = clamav_client::scan_tcp(file_path, clamd_host_address, None).unwrap();
-let file_clean = clamav_client::clean(&scan_response).unwrap();
+let file_path = "tests/eicar.txt";
+let scan_file_response =
+    clamav_client::scan_file_tcp(file_path, clamd_host_address, None).unwrap();
+let file_clean = clamav_client::clean(&scan_file_response).unwrap();
 if file_clean {
     println!("No virus found in {}", file_path);
 } else {
     println!("The file {} is infected!", file_path);
 }
+
+// Scan in-memory data for viruses
+let buffer = br#"X5O!P%@AP[4\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*"#;
+let scan_buffer_response =
+    clamav_client::scan_buffer_tcp(buffer, clamd_host_address, None).unwrap();
+let data_clean = clamav_client::clean(&scan_buffer_response).unwrap();
+if data_clean {
+    println!("No virus found");
+} else {
+    println!("The data is infected!");
+}
 ```
+
+## Contributors
+
+- [Christopher Prohm](https://github.com/chmp)
+- [Paul Makles](https://github.com/insertish)
