@@ -66,7 +66,7 @@ fn test_scan_buffer_tcp() {
         .bytes()
         .collect::<Vec<u8>>();
 
-    let response = scan_buffer_tcp(buffer, TEST_HOST_ADDRESS, None).expect(&err_msg);
+    let response = scan_buffer_tcp(&buffer, TEST_HOST_ADDRESS, None).expect(&err_msg);
     assert_eq!(&response, EICAR_BUFFER_FOUND_RESPONSE);
 
     let is_clean = clean(&response);

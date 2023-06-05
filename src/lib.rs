@@ -50,7 +50,7 @@ where
     Ok(response)
 }
 
-fn scan_buffer<RW>(buffer: Vec<u8>, mut stream: RW, chunk_size: Option<u32>) -> IoResult
+fn scan_buffer<RW>(buffer: &[u8], mut stream: RW, chunk_size: Option<u32>) -> IoResult
 where
     RW: Read + Write,
 {
@@ -92,7 +92,7 @@ where
 }
 
 #[cfg(target_family = "unix")]
-pub fn scan_buffer_socket<P>(buffer: Vec<u8>, socket_path: P, chunk_size: Option<u32>) -> IoResult
+pub fn scan_buffer_socket<P>(buffer: &[u8], socket_path: P, chunk_size: Option<u32>) -> IoResult
 where
     P: AsRef<Path>,
 {
@@ -119,7 +119,7 @@ where
     scan(file_path, chunk_size, stream)
 }
 
-pub fn scan_buffer_tcp<A>(buffer: Vec<u8>, host_address: A, chunk_size: Option<u32>) -> IoResult
+pub fn scan_buffer_tcp<A>(buffer: &[u8], host_address: A, chunk_size: Option<u32>) -> IoResult
 where
     A: ToSocketAddrs,
 {
