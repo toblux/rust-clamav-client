@@ -50,12 +50,18 @@ where
     Ok(response)
 }
 
-fn scan_buffer<RW>(buffer: Vec<u8>, mut stream: RW) -> IoResult
+fn scan_buffer<RW>(buffer: Vec<u8>, mut stream: RW, chunk_size: Option<u32>) -> IoResult
 where
     RW: Read + Write,
 {
     stream.write_all(b"zINSTREAM\0")?;
-    stream.write_all(&buffer[..])?;
+
+    let chunk_size = chunk_size.unwrap_or(DEFAULT_CHUNK_SIZE) as usize;
+    for chunk in buffer.chunks(chunk_size) {
+        stream.write_all(&(chunk.len() as u32).to_be_bytes())?;
+        stream.write_all(&chunk[..])?;
+    }
+
     stream.write_all(&[0; 4])?;
 
     let mut response = Vec::new();
@@ -86,14 +92,14 @@ where
 }
 
 #[cfg(target_family = "unix")]
-pub fn scan_buffer_socket<P>(buffer: Vec<u8>, socket_path: P) -> IoResult
+pub fn scan_buffer_socket<P>(buffer: Vec<u8>, socket_path: P, chunk_size: Option<u32>) -> IoResult
 where
     P: AsRef<Path>,
 {
     use std::os::unix::net::UnixStream;
 
     let stream = UnixStream::connect(socket_path)?;
-    scan_buffer(buffer, stream)
+    scan_buffer(buffer, stream, chunk_size)
 }
 
 pub fn ping_tcp<A>(host_address: A) -> IoResult
@@ -113,12 +119,12 @@ where
     scan(file_path, chunk_size, stream)
 }
 
-pub fn scan_buffer_tcp<A>(buffer: Vec<u8>, host_address: A) -> IoResult
+pub fn scan_buffer_tcp<A>(buffer: Vec<u8>, host_address: A, chunk_size: Option<u32>) -> IoResult
 where
     A: ToSocketAddrs,
 {
     let stream = TcpStream::connect(host_address)?;
-    scan_buffer(buffer, stream)
+    scan_buffer(buffer, stream, chunk_size)
 }
 
 pub fn clean(response: &[u8]) -> Utf8Result {
