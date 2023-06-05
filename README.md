@@ -51,7 +51,7 @@ let buffer = "X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H
     .bytes()
     .collect::<Vec<u8>>();
 
-let scan_response = clamav_client::scan_buffer_tcp(buffer, clamd_host_address).unwrap();
+let scan_response = clamav_client::scan_buffer_tcp(buffer, clamd_host_address, None).unwrap();
 let file_clean = clamav_client::clean(&scan_response).unwrap();
 assert!(!file_clean);
 ```
