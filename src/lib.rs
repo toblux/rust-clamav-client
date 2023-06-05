@@ -113,7 +113,7 @@ where
     scan(file_path, chunk_size, stream)
 }
 
-pub fn scan_buffer_tcp<P, A>(buffer: Vec<u8>, host_address: A) -> IoResult
+pub fn scan_buffer_tcp<A>(buffer: Vec<u8>, host_address: A) -> IoResult
 where
     A: ToSocketAddrs,
 {
