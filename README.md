@@ -15,10 +15,11 @@ clamav-client = "0.1.3"
 
 ## Usage
 
+Ensure ClamD is running by pinging the server for a response:
+
 ```rust
 let clamd_host_address = "localhost:3310";
 
-// Ping clamd to make sure the server is available and accepting TCP connections
 let clamd_available = match clamav_client::ping_tcp(clamd_host_address) {
     Ok(ping_response) => ping_response == b"PONG\0",
     Err(_) => false,
@@ -28,8 +29,11 @@ if !clamd_available {
     println!("Cannot ping clamd at {}", clamd_host_address);
     return;
 }
+```
 
-// Scan file for viruses
+Scan a file for detections:
+
+```rust
 let file_path = "virus.txt";
 let scan_response = clamav_client::scan_tcp(file_path, clamd_host_address, None).unwrap();
 let file_clean = clamav_client::clean(&scan_response).unwrap();
@@ -38,4 +42,16 @@ if file_clean {
 } else {
     println!("The file {} is infected!", file_path);
 }
+```
+
+Scan a buffer from memory:
+
+```rust
+let buffer = "X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*"
+    .bytes()
+    .collect::<Vec<u8>>();
+
+let scan_response = clamav_client::scan_buffer_tcp(buffer, clamd_host_address).unwrap();
+let file_clean = clamav_client::clean(&scan_response).unwrap();
+assert!(!file_clean);
 ```
