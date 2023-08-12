@@ -48,6 +48,21 @@ fn scan<R: Read, RW: Read + Write>(
     Ok(response)
 }
 
+/// Sends a ping request to ClamAV using a Unix socket connection
+///
+/// This function establishes a Unix socket connection to a ClamAV server at the
+/// specified `socket_path` and sends a ping request to it.
+///
+/// # Example
+///
+/// ```
+/// let clamd_available = match clamav_client::ping_socket("/tmp/clamd.socket") {
+///     Ok(ping_response) => ping_response == b"PONG\0",
+///     Err(_) => false,
+/// };
+/// # assert!(clamd_available);
+/// ```
+///
 #[cfg(target_family = "unix")]
 pub fn ping_socket<P: AsRef<Path>>(socket_path: P) -> IoResult {
     use std::os::unix::net::UnixStream;
@@ -56,6 +71,21 @@ pub fn ping_socket<P: AsRef<Path>>(socket_path: P) -> IoResult {
     ping(stream)
 }
 
+/// Scans a file for viruses using a Unix socket connection
+///
+/// This function reads data from a file located at the specified `path` and
+/// streams it to a ClamAV server through a Unix socket connection for scanning.
+///
+/// # Arguments
+///
+/// * `path`: Path to the file to be scanned
+/// * `socket_path`: Path to the Unix socket for the ClamAV server
+/// * `chunk_size`: An optional chunk size for reading data. If `None`, a default chunk size is used
+///
+/// # Returns
+///
+/// An `IoResult` containing the server's response as a vector of bytes
+///
 #[cfg(target_family = "unix")]
 pub fn scan_file_socket<P: AsRef<Path>>(
     path: P,
@@ -69,6 +99,21 @@ pub fn scan_file_socket<P: AsRef<Path>>(
     scan(file, chunk_size, stream)
 }
 
+/// Scans a data buffer for viruses using a Unix socket connection
+///
+/// This function streams the provided `buffer` data to a ClamAV server through
+/// a Unix socket connection for scanning.
+///
+/// # Arguments
+///
+/// * `buffer`: The data to be scanned
+/// * `socket_path`: The path to the Unix socket for the ClamAV server
+/// * `chunk_size`: An optional chunk size for reading data. If `None`, a default chunk size is used
+///
+/// # Returns
+///
+/// An `IoResult` containing the server's response as a vector of bytes
+///
 #[cfg(target_family = "unix")]
 pub fn scan_buffer_socket<P: AsRef<Path>>(
     buffer: &[u8],
@@ -81,11 +126,41 @@ pub fn scan_buffer_socket<P: AsRef<Path>>(
     scan(buffer, chunk_size, stream)
 }
 
+/// Sends a ping request to ClamAV using a TCP connection
+///
+/// This function establishes a TCP connection to a ClamAV server at the
+/// specified `host_address` and sends a ping request to it.
+///
+/// # Example
+///
+/// ```
+/// let clamd_available = match clamav_client::ping_tcp("localhost:3310") {
+///     Ok(ping_response) => ping_response == b"PONG\0",
+///     Err(_) => false,
+/// };
+/// # assert!(clamd_available);
+/// ```
+///
 pub fn ping_tcp<A: ToSocketAddrs>(host_address: A) -> IoResult {
     let stream = TcpStream::connect(host_address)?;
     ping(stream)
 }
 
+/// Scans a file for viruses using a TCP connection
+///
+/// This function reads data from a file located at the specified `path` and
+/// streams it to a ClamAV server through a TCP connection for scanning.
+///
+/// # Arguments
+///
+/// * `path`: The path to the file to be scanned
+/// * `host_address`: The address (host and port) of the ClamAV server
+/// * `chunk_size`: An optional chunk size for reading data. If `None`, a default chunk size is used
+///
+/// # Returns
+///
+/// An `IoResult` containing the server's response as a vector of bytes
+///
 pub fn scan_file_tcp<P: AsRef<Path>, A: ToSocketAddrs>(
     path: P,
     host_address: A,
@@ -96,6 +171,21 @@ pub fn scan_file_tcp<P: AsRef<Path>, A: ToSocketAddrs>(
     scan(file, chunk_size, stream)
 }
 
+/// Scans a data buffer for viruses using a TCP connection
+///
+/// This function streams the provided `buffer` data to a ClamAV server through
+/// a TCP connection for scanning.
+///
+/// # Arguments
+///
+/// * `buffer`: The data to be scanned
+/// * `host_address`: The address (host and port) of the ClamAV server
+/// * `chunk_size`: An optional chunk size for reading data. If `None`, a default chunk size is used
+///
+/// # Returns
+///
+/// An `IoResult` containing the server's response as a vector of bytes
+///
 pub fn scan_buffer_tcp<A: ToSocketAddrs>(
     buffer: &[u8],
     host_address: A,
@@ -105,6 +195,17 @@ pub fn scan_buffer_tcp<A: ToSocketAddrs>(
     scan(buffer, chunk_size, stream)
 }
 
+/// Checks whether the ClamAV response indicates that the scanned content is
+/// clean or contains a virus
+///
+/// # Example
+///
+/// ```
+/// let response = clamav_client::scan_buffer_tcp(br#"clean data"#, "localhost:3310", None).unwrap();
+/// let data_clean = clamav_client::clean(&response).unwrap();
+/// # assert_eq!(data_clean, true);
+/// ```
+///
 pub fn clean(response: &[u8]) -> Utf8Result {
     let response = std::str::from_utf8(response)?;
     Ok(response.contains("OK") && !response.contains("FOUND"))
