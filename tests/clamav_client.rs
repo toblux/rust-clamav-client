@@ -10,6 +10,11 @@ const PONG_RESPONSE: &[u8] = b"PONG\0";
 const EICAR_FILE_SIGNATURE_FOUND_RESPONSE: &[u8] = b"stream: Eicar-Signature FOUND\0";
 const OK_RESPONSE: &[u8] = b"stream: OK\0";
 
+// `StreamMaxLength` is limited to 1 MB in `clamd.conf` - this binary test file
+// is exactly 1 byte larger than allowed to test the "size limit exceeded" error
+const OVERSIZED_TEST_FILE_PATH: &str = "tests/stream-max-length+1byte.bin";
+const SIZE_LIMIT_EXCEEDED_ERROR_RESPONSE: &[u8] = b"INSTREAM size limit exceeded. ERROR\0";
+
 #[test]
 #[cfg(target_family = "unix")]
 fn ping_socket() {
@@ -18,13 +23,6 @@ fn ping_socket() {
         TEST_SOCKET_PATH
     );
     let response = clamav_client::ping_socket(TEST_SOCKET_PATH).expect(&err_msg);
-    assert_eq!(&response, PONG_RESPONSE);
-}
-
-#[test]
-fn ping_tcp() {
-    let err_msg = format!("Could not ping clamd via TCP at {}", TEST_HOST_ADDRESS);
-    let response = clamav_client::ping_tcp(TEST_HOST_ADDRESS).expect(&err_msg);
     assert_eq!(&response, PONG_RESPONSE);
 }
 
@@ -69,6 +67,27 @@ fn scan_socket_clean_file() {
 }
 
 #[test]
+#[cfg(target_family = "unix")]
+fn scan_socket_oversized_file() {
+    let err_msg = format!(
+        "Could not scan test file {} via socket at {}",
+        OVERSIZED_TEST_FILE_PATH, TEST_SOCKET_PATH
+    );
+    let response =
+        clamav_client::scan_file_socket(OVERSIZED_TEST_FILE_PATH, TEST_SOCKET_PATH, None)
+            .expect(&err_msg);
+    assert_eq!(&response, SIZE_LIMIT_EXCEEDED_ERROR_RESPONSE);
+    assert_eq!(clamav_client::clean(&response), Ok(false));
+}
+
+#[test]
+fn ping_tcp() {
+    let err_msg = format!("Could not ping clamd via TCP at {}", TEST_HOST_ADDRESS);
+    let response = clamav_client::ping_tcp(TEST_HOST_ADDRESS).expect(&err_msg);
+    assert_eq!(&response, PONG_RESPONSE);
+}
+
+#[test]
 fn scan_tcp_infected_file() {
     let err_msg = format!(
         "Could not scan test file {} via TCP at {}",
@@ -102,4 +121,16 @@ fn scan_tcp_clean_file() {
         .expect(&err_msg);
     assert_eq!(&response, OK_RESPONSE);
     assert_eq!(clamav_client::clean(&response), Ok(true));
+}
+
+#[test]
+fn scan_tcp_oversized_file() {
+    let err_msg = format!(
+        "Could not scan test file {} via TCP at {}",
+        OVERSIZED_TEST_FILE_PATH, TEST_HOST_ADDRESS
+    );
+    let response = clamav_client::scan_file_tcp(OVERSIZED_TEST_FILE_PATH, TEST_HOST_ADDRESS, None)
+        .expect(&err_msg);
+    assert_eq!(&response, SIZE_LIMIT_EXCEEDED_ERROR_RESPONSE);
+    assert_eq!(clamav_client::clean(&response), Ok(false));
 }
