@@ -12,7 +12,7 @@ const OK_RESPONSE: &[u8] = b"stream: OK\0";
 
 // `StreamMaxLength` is limited to 1 MB in `clamd.conf` - this binary test file
 // is exactly 1 byte larger than allowed to test the "size limit exceeded" error
-const OVERSIZED_TEST_FILE_PATH: &str = "tests/stream-max-length+1byte.bin";
+const OVERSIZED_TEST_FILE_PATH: &str = "tests/stream-max-length-test-file.bin";
 const SIZE_LIMIT_EXCEEDED_ERROR_RESPONSE: &[u8] = b"INSTREAM size limit exceeded. ERROR\0";
 
 #[test]
