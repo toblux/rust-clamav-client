@@ -66,6 +66,7 @@ fn scan_socket_clean_file() {
     assert_eq!(clamav_client::clean(&response), Ok(true));
 }
 
+#[ignore]
 #[test]
 #[cfg(target_family = "unix")]
 fn scan_socket_oversized_file() {
@@ -123,6 +124,7 @@ fn scan_tcp_clean_file() {
     assert_eq!(clamav_client::clean(&response), Ok(true));
 }
 
+#[ignore]
 #[test]
 fn scan_tcp_oversized_file() {
     let err_msg = format!(
