@@ -1,3 +1,6 @@
+#![doc = include_str!("../README.md")]
+#![deny(missing_docs)]
+
 use std::{
     fs::File,
     io::{Error, Read, Write},
@@ -7,10 +10,14 @@ use std::{
     str::Utf8Error,
 };
 
+/// TODO: Add comment
 pub type IoResult = Result<Vec<u8>, Error>;
+
+/// TODO: Add comment
 pub type Utf8Result = Result<bool, Utf8Error>;
 
-const DEFAULT_CHUNK_SIZE: usize = 4096; // 4 kibibytes
+/// Default chunk size in bytes for reading data during scanning
+const DEFAULT_CHUNK_SIZE: usize = 4096;
 
 fn ping<RW: Read + Write>(mut stream: RW) -> IoResult {
     stream.write_all(b"zPING\0")?;

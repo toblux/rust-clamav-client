@@ -1,6 +1,6 @@
 # Rust ClamAV Client
 
-A simple ClamAV client to stream files to [clamd](https://linux.die.net/man/8/clamd) for antivirus scanning.
+A simple ClamAV client to stream files or in-memory data to [clamd](https://linux.die.net/man/8/clamd) for antivirus scanning.
 
 Please note: The functions `ping_socket`, `scan_file_socket`, and `scan_buffer_socket` are only available on Unix platforms.
 
