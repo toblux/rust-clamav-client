@@ -1,6 +1,6 @@
 [package]
 name = "clamav-client"
-version = "0.2.1"
+version = "0.2.2"
 authors = ["Thorsten Blum"]
 edition = "2021"
 repository = "https://github.com/toblux/rust-clamav-client"
