@@ -1,7 +1,7 @@
 #![doc = include_str!("../README.md")]
 #![deny(missing_docs)]
 
-#[cfg(feature = "async")]
+#[cfg(feature = "asynch")]
 /// Async (Tokio) implementation
 pub mod asynch;
 
