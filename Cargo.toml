@@ -8,3 +8,9 @@ description = "ClamAV client library"
 readme = "README.md"
 license = "MIT"
 keywords = ["clamav", "clamd", "anitvirus"]
+
+[dependencies]
+tokio = { version = "1.34.0", features = ["fs", "io-std", "io-util", "macros", "net", "rt"], optional = true }
+
+[features]
+async = ["dep:tokio"]
