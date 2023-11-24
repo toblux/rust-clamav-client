@@ -34,7 +34,7 @@ async fn async_ping_socket() {
         "Could not ping clamd via Unix socket at {}",
         TEST_SOCKET_PATH
     );
-    let response = clamav_client::r#async::ping_socket(TEST_SOCKET_PATH)
+    let response = clamav_client::asynch::ping_socket(TEST_SOCKET_PATH)
         .await
         .expect(&err_msg);
     assert_eq!(&response, PONG_RESPONSE);
@@ -62,7 +62,7 @@ async fn async_scan_socket_infected_file() {
         EICAR_TEST_FILE_PATH, TEST_SOCKET_PATH
     );
     let response =
-        clamav_client::r#async::scan_file_socket(EICAR_TEST_FILE_PATH, TEST_SOCKET_PATH, None)
+        clamav_client::asynch::scan_file_socket(EICAR_TEST_FILE_PATH, TEST_SOCKET_PATH, None)
             .await
             .expect(&err_msg);
     assert_eq!(&response, EICAR_FILE_SIGNATURE_FOUND_RESPONSE);
@@ -92,7 +92,7 @@ async fn async_scan_socket_infected_buffer() {
         TEST_SOCKET_PATH
     );
     let buffer = include_bytes!("eicar.txt");
-    let response = clamav_client::r#async::scan_buffer_socket(buffer, TEST_SOCKET_PATH, None)
+    let response = clamav_client::asynch::scan_buffer_socket(buffer, TEST_SOCKET_PATH, None)
         .await
         .expect(&err_msg);
     assert_eq!(&response, EICAR_FILE_SIGNATURE_FOUND_RESPONSE);
@@ -121,7 +121,7 @@ async fn async_scan_socket_clean_file() {
         CLEAN_TEST_FILE_PATH, TEST_SOCKET_PATH
     );
     let response =
-        clamav_client::r#async::scan_file_socket(CLEAN_TEST_FILE_PATH, TEST_SOCKET_PATH, None)
+        clamav_client::asynch::scan_file_socket(CLEAN_TEST_FILE_PATH, TEST_SOCKET_PATH, None)
             .await
             .expect(&err_msg);
     assert_eq!(&response, OK_RESPONSE);
@@ -153,7 +153,7 @@ async fn async_scan_socket_oversized_file() {
         OVERSIZED_TEST_FILE_PATH, TEST_SOCKET_PATH
     );
     let response =
-        clamav_client::r#async::scan_file_socket(OVERSIZED_TEST_FILE_PATH, TEST_SOCKET_PATH, None)
+        clamav_client::asynch::scan_file_socket(OVERSIZED_TEST_FILE_PATH, TEST_SOCKET_PATH, None)
             .await
             .expect(&err_msg);
     assert_eq!(&response, SIZE_LIMIT_EXCEEDED_ERROR_RESPONSE);
@@ -171,7 +171,7 @@ fn ping_tcp() {
 #[tokio::test]
 async fn async_ping_tcp() {
     let err_msg = format!("Could not ping clamd via TCP at {}", TEST_HOST_ADDRESS);
-    let response = clamav_client::r#async::ping_tcp(TEST_HOST_ADDRESS)
+    let response = clamav_client::asynch::ping_tcp(TEST_HOST_ADDRESS)
         .await
         .expect(&err_msg);
     assert_eq!(&response, PONG_RESPONSE);
@@ -197,7 +197,7 @@ async fn async_scan_tcp_infected_file() {
         EICAR_TEST_FILE_PATH, TEST_HOST_ADDRESS
     );
     let response =
-        clamav_client::r#async::scan_file_tcp(EICAR_TEST_FILE_PATH, TEST_HOST_ADDRESS, None)
+        clamav_client::asynch::scan_file_tcp(EICAR_TEST_FILE_PATH, TEST_HOST_ADDRESS, None)
             .await
             .expect(&err_msg);
     assert_eq!(&response, EICAR_FILE_SIGNATURE_FOUND_RESPONSE);
@@ -224,7 +224,7 @@ async fn async_scan_tcp_infected_buffer() {
         TEST_HOST_ADDRESS
     );
     let buffer = include_bytes!("eicar.txt");
-    let response = clamav_client::r#async::scan_buffer_tcp(buffer, TEST_HOST_ADDRESS, None)
+    let response = clamav_client::asynch::scan_buffer_tcp(buffer, TEST_HOST_ADDRESS, None)
         .await
         .expect(&err_msg);
     assert_eq!(&response, EICAR_FILE_SIGNATURE_FOUND_RESPONSE);
@@ -251,7 +251,7 @@ async fn async_scan_tcp_clean_file() {
         CLEAN_TEST_FILE_PATH, TEST_HOST_ADDRESS
     );
     let response =
-        clamav_client::r#async::scan_file_tcp(CLEAN_TEST_FILE_PATH, TEST_HOST_ADDRESS, None)
+        clamav_client::asynch::scan_file_tcp(CLEAN_TEST_FILE_PATH, TEST_HOST_ADDRESS, None)
             .await
             .expect(&err_msg);
     assert_eq!(&response, OK_RESPONSE);
@@ -280,7 +280,7 @@ async fn async_scan_tcp_oversized_file() {
         OVERSIZED_TEST_FILE_PATH, TEST_HOST_ADDRESS
     );
     let response =
-        clamav_client::r#async::scan_file_tcp(OVERSIZED_TEST_FILE_PATH, TEST_HOST_ADDRESS, None)
+        clamav_client::asynch::scan_file_tcp(OVERSIZED_TEST_FILE_PATH, TEST_HOST_ADDRESS, None)
             .await
             .expect(&err_msg);
     assert_eq!(&response, SIZE_LIMIT_EXCEEDED_ERROR_RESPONSE);

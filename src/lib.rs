@@ -3,7 +3,7 @@
 
 #[cfg(feature = "async")]
 /// Async (Tokio) implementation
-pub mod r#async;
+pub mod asynch;
 
 use std::{
     fs::File,

@@ -1,9 +1,9 @@
+use std::{path::Path, pin::Pin};
 use tokio::{
     fs::File,
     io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt},
     net::{TcpStream, ToSocketAddrs},
 };
-use std::{path::Path, pin::Pin};
 
 use super::IoResult;
 use super::DEFAULT_CHUNK_SIZE;
