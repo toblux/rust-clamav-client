@@ -51,11 +51,14 @@ async fn scan<R: AsyncRead, RW: AsyncRead + AsyncWrite>(
 /// # Example
 ///
 /// ```
-/// let clamd_available = match clamav_client::ping_socket("/tmp/clamd.socket") {
+/// # #[tokio::main(flavor = "current_thread")]
+/// # async fn main() {
+/// let clamd_available = match clamav_client::tokio::ping_socket("/tmp/clamd.socket").await {
 ///     Ok(ping_response) => ping_response == b"PONG\0",
 ///     Err(_) => false,
 /// };
 /// # assert!(clamd_available);
+/// # }
 /// ```
 ///
 #[cfg(unix)]
@@ -140,11 +143,14 @@ pub async fn scan_buffer_socket<P: AsRef<Path>>(
 /// # Example
 ///
 /// ```
-/// let clamd_available = match clamav_client::ping_tcp("localhost:3310") {
+/// # #[tokio::main(flavor = "current_thread")]
+/// # async fn main() {
+/// let clamd_available = match clamav_client::tokio::ping_tcp("localhost:3310").await {
 ///     Ok(ping_response) => ping_response == b"PONG\0",
 ///     Err(_) => false,
 /// };
 /// # assert!(clamd_available);
+/// # }
 /// ```
 ///
 pub async fn ping_tcp<A: ToSocketAddrs>(host_address: A) -> IoResult {
