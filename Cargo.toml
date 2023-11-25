@@ -3,6 +3,7 @@ name = "clamav-client"
 version = "0.2.2"
 authors = ["Thorsten Blum"]
 edition = "2021"
+homepage = "https://github.com/toblux/rust-clamav-client"
 repository = "https://github.com/toblux/rust-clamav-client"
 description = "ClamAV client library"
 readme = "README.md"
