@@ -10,7 +10,10 @@ license = "MIT"
 keywords = ["clamav", "clamd", "anitvirus"]
 
 [dependencies]
-tokio = { version = "1.34.0", features = ["fs", "io-std", "io-util", "macros", "net", "rt"], optional = true }
+tokio = { version = "1.34.0", features = ["fs", "io-util", "net"], optional = true }
+
+[dev-dependencies]
+tokio = { version = "1.34.0", features = ["io-std", "macros", "rt"] }
 
 [features]
-asynch = ["dep:tokio"]
+tokio = ["dep:tokio"]

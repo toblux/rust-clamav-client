@@ -1,9 +1,9 @@
 #![doc = include_str!("../README.md")]
 #![deny(missing_docs)]
 
-#[cfg(feature = "asynch")]
+#[cfg(feature = "tokio")]
 /// Async (Tokio) implementation
-pub mod asynch;
+pub mod tokio;
 
 use std::{
     fs::File,
@@ -74,7 +74,7 @@ fn scan<R: Read, RW: Read + Write>(
 /// # assert!(clamd_available);
 /// ```
 ///
-#[cfg(target_family = "unix")]
+#[cfg(unix)]
 pub fn ping_socket<P: AsRef<Path>>(socket_path: P) -> IoResult {
     use std::os::unix::net::UnixStream;
 
@@ -97,7 +97,7 @@ pub fn ping_socket<P: AsRef<Path>>(socket_path: P) -> IoResult {
 ///
 /// An `IoResult` containing the server's response as a vector of bytes
 ///
-#[cfg(target_family = "unix")]
+#[cfg(unix)]
 pub fn scan_file_socket<P: AsRef<Path>>(
     path: P,
     socket_path: P,
@@ -125,7 +125,7 @@ pub fn scan_file_socket<P: AsRef<Path>>(
 ///
 /// An `IoResult` containing the server's response as a vector of bytes
 ///
-#[cfg(target_family = "unix")]
+#[cfg(unix)]
 pub fn scan_buffer_socket<P: AsRef<Path>>(
     buffer: &[u8],
     socket_path: P,

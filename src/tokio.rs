@@ -5,8 +5,7 @@ use tokio::{
     net::{TcpStream, ToSocketAddrs},
 };
 
-use super::IoResult;
-use super::DEFAULT_CHUNK_SIZE;
+use super::{IoResult, DEFAULT_CHUNK_SIZE};
 
 async fn ping<RW: AsyncRead + AsyncWrite>(mut stream: Pin<&mut RW>) -> IoResult {
     stream.write_all(b"zPING\0").await?;
@@ -59,7 +58,7 @@ async fn scan<R: AsyncRead, RW: AsyncRead + AsyncWrite>(
 /// # assert!(clamd_available);
 /// ```
 ///
-#[cfg(target_family = "unix")]
+#[cfg(unix)]
 pub async fn ping_socket<P: AsRef<Path>>(socket_path: P) -> IoResult {
     use tokio::net::UnixStream;
 
@@ -85,7 +84,7 @@ pub async fn ping_socket<P: AsRef<Path>>(socket_path: P) -> IoResult {
 ///
 /// An `IoResult` containing the server's response as a vector of bytes
 ///
-#[cfg(target_family = "unix")]
+#[cfg(unix)]
 pub async fn scan_file_socket<P: AsRef<Path>>(
     path: P,
     socket_path: P,
@@ -117,7 +116,7 @@ pub async fn scan_file_socket<P: AsRef<Path>>(
 ///
 /// An `IoResult` containing the server's response as a vector of bytes
 ///
-#[cfg(target_family = "unix")]
+#[cfg(unix)]
 pub async fn scan_buffer_socket<P: AsRef<Path>>(
     buffer: &[u8],
     socket_path: P,
