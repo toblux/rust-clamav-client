@@ -1,61 +1,45 @@
-#![doc = include_str!("../README.md")]
-#![deny(missing_docs)]
-
-#[cfg(feature = "tokio")]
-/// Async (Tokio) implementation
-pub mod tokio;
-
-use std::{
+use std::path::Path;
+use tokio::{
     fs::File,
-    io::{Error, Read, Write},
+    io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt},
     net::{TcpStream, ToSocketAddrs},
-    path::Path,
-    result::Result,
-    str::Utf8Error,
 };
 
-/// TODO: Add comment
-pub type IoResult = Result<Vec<u8>, Error>;
+use super::{IoResult, DEFAULT_CHUNK_SIZE};
 
-/// TODO: Add comment
-pub type Utf8Result = Result<bool, Utf8Error>;
-
-/// Default chunk size in bytes for reading data during scanning
-const DEFAULT_CHUNK_SIZE: usize = 4096;
-
-fn ping<RW: Read + Write>(mut stream: RW) -> IoResult {
-    stream.write_all(b"zPING\0")?;
+async fn ping<RW: AsyncRead + AsyncWrite + Unpin>(mut stream: RW) -> IoResult {
+    stream.write_all(b"zPING\0").await?;
 
     let capacity = b"PONG\0".len();
     let mut response = Vec::with_capacity(capacity);
-    stream.read_to_end(&mut response)?;
+    stream.read_to_end(&mut response).await?;
     Ok(response)
 }
 
-fn scan<R: Read, RW: Read + Write>(
+async fn scan<R: AsyncRead + Unpin, RW: AsyncRead + AsyncWrite + Unpin>(
     mut input: R,
     chunk_size: Option<usize>,
     mut stream: RW,
 ) -> IoResult {
-    stream.write_all(b"zINSTREAM\0")?;
+    stream.write_all(b"zINSTREAM\0").await?;
 
     let chunk_size = chunk_size
         .unwrap_or(DEFAULT_CHUNK_SIZE)
         .min(u32::MAX as usize);
     let mut buffer = vec![0; chunk_size];
     loop {
-        let len = input.read(&mut buffer[..])?;
+        let len = input.read(&mut buffer[..]).await?;
         if len != 0 {
-            stream.write_all(&(len as u32).to_be_bytes())?;
-            stream.write_all(&buffer[..len])?;
+            stream.write_all(&(len as u32).to_be_bytes()).await?;
+            stream.write_all(&buffer[..len]).await?;
         } else {
-            stream.write_all(&[0; 4])?;
+            stream.write_all(&[0; 4]).await?;
             break;
         }
     }
 
     let mut response = Vec::new();
-    stream.read_to_end(&mut response)?;
+    stream.read_to_end(&mut response).await?;
     Ok(response)
 }
 
@@ -67,19 +51,22 @@ fn scan<R: Read, RW: Read + Write>(
 /// # Example
 ///
 /// ```
-/// let clamd_available = match clamav_client::ping_socket("/tmp/clamd.socket") {
+/// # #[tokio::main(flavor = "current_thread")]
+/// # async fn main() {
+/// let clamd_available = match clamav_client::tokio::ping_socket("/tmp/clamd.socket").await {
 ///     Ok(ping_response) => ping_response == b"PONG\0",
 ///     Err(_) => false,
 /// };
 /// # assert!(clamd_available);
+/// # }
 /// ```
 ///
 #[cfg(unix)]
-pub fn ping_socket<P: AsRef<Path>>(socket_path: P) -> IoResult {
-    use std::os::unix::net::UnixStream;
+pub async fn ping_socket<P: AsRef<Path>>(socket_path: P) -> IoResult {
+    use tokio::net::UnixStream;
 
-    let stream = UnixStream::connect(socket_path)?;
-    ping(stream)
+    let stream = UnixStream::connect(socket_path).await?;
+    ping(stream).await
 }
 
 /// Scans a file for viruses using a Unix socket connection
@@ -98,16 +85,16 @@ pub fn ping_socket<P: AsRef<Path>>(socket_path: P) -> IoResult {
 /// An `IoResult` containing the server's response as a vector of bytes
 ///
 #[cfg(unix)]
-pub fn scan_file_socket<P: AsRef<Path>>(
+pub async fn scan_file_socket<P: AsRef<Path>>(
     path: P,
     socket_path: P,
     chunk_size: Option<usize>,
 ) -> IoResult {
-    use std::os::unix::net::UnixStream;
+    use tokio::net::UnixStream;
 
-    let file = File::open(path)?;
-    let stream = UnixStream::connect(socket_path)?;
-    scan(file, chunk_size, stream)
+    let file = File::open(path).await?;
+    let stream = UnixStream::connect(socket_path).await?;
+    scan(file, chunk_size, stream).await
 }
 
 /// Scans a data buffer for viruses using a Unix socket connection
@@ -126,15 +113,15 @@ pub fn scan_file_socket<P: AsRef<Path>>(
 /// An `IoResult` containing the server's response as a vector of bytes
 ///
 #[cfg(unix)]
-pub fn scan_buffer_socket<P: AsRef<Path>>(
+pub async fn scan_buffer_socket<P: AsRef<Path>>(
     buffer: &[u8],
     socket_path: P,
     chunk_size: Option<usize>,
 ) -> IoResult {
-    use std::os::unix::net::UnixStream;
+    use tokio::net::UnixStream;
 
-    let stream = UnixStream::connect(socket_path)?;
-    scan(buffer, chunk_size, stream)
+    let stream = UnixStream::connect(socket_path).await?;
+    scan(buffer, chunk_size, stream).await
 }
 
 /// Sends a ping request to ClamAV using a TCP connection
@@ -145,16 +132,19 @@ pub fn scan_buffer_socket<P: AsRef<Path>>(
 /// # Example
 ///
 /// ```
-/// let clamd_available = match clamav_client::ping_tcp("localhost:3310") {
+/// # #[tokio::main(flavor = "current_thread")]
+/// # async fn main() {
+/// let clamd_available = match clamav_client::tokio::ping_tcp("localhost:3310").await {
 ///     Ok(ping_response) => ping_response == b"PONG\0",
 ///     Err(_) => false,
 /// };
 /// # assert!(clamd_available);
+/// # }
 /// ```
 ///
-pub fn ping_tcp<A: ToSocketAddrs>(host_address: A) -> IoResult {
-    let stream = TcpStream::connect(host_address)?;
-    ping(stream)
+pub async fn ping_tcp<A: ToSocketAddrs>(host_address: A) -> IoResult {
+    let stream = TcpStream::connect(host_address).await?;
+    ping(stream).await
 }
 
 /// Scans a file for viruses using a TCP connection
@@ -172,14 +162,14 @@ pub fn ping_tcp<A: ToSocketAddrs>(host_address: A) -> IoResult {
 ///
 /// An `IoResult` containing the server's response as a vector of bytes
 ///
-pub fn scan_file_tcp<P: AsRef<Path>, A: ToSocketAddrs>(
+pub async fn scan_file_tcp<P: AsRef<Path>, A: ToSocketAddrs>(
     path: P,
     host_address: A,
     chunk_size: Option<usize>,
 ) -> IoResult {
-    let file = File::open(path)?;
-    let stream = TcpStream::connect(host_address)?;
-    scan(file, chunk_size, stream)
+    let file = File::open(path).await?;
+    let stream = TcpStream::connect(host_address).await?;
+    scan(file, chunk_size, stream).await
 }
 
 /// Scans a data buffer for viruses using a TCP connection
@@ -197,27 +187,11 @@ pub fn scan_file_tcp<P: AsRef<Path>, A: ToSocketAddrs>(
 ///
 /// An `IoResult` containing the server's response as a vector of bytes
 ///
-pub fn scan_buffer_tcp<A: ToSocketAddrs>(
+pub async fn scan_buffer_tcp<A: ToSocketAddrs>(
     buffer: &[u8],
     host_address: A,
     chunk_size: Option<usize>,
 ) -> IoResult {
-    let stream = TcpStream::connect(host_address)?;
-    scan(buffer, chunk_size, stream)
-}
-
-/// Checks whether the ClamAV response indicates that the scanned content is
-/// clean or contains a virus
-///
-/// # Example
-///
-/// ```
-/// let response = clamav_client::scan_buffer_tcp(br#"clean data"#, "localhost:3310", None).unwrap();
-/// let data_clean = clamav_client::clean(&response).unwrap();
-/// # assert_eq!(data_clean, true);
-/// ```
-///
-pub fn clean(response: &[u8]) -> Utf8Result {
-    let response = std::str::from_utf8(response)?;
-    Ok(response.contains("OK") && !response.contains("FOUND"))
+    let stream = TcpStream::connect(host_address).await?;
+    scan(buffer, chunk_size, stream).await
 }

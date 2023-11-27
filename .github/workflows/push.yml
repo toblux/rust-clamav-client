@@ -1,5 +1,5 @@
 name: Run tests
-on: push
+on: [push, pull_request]
 
 jobs:
   test:
@@ -16,6 +16,6 @@ jobs:
       - name: Start clamd
         run: clamd --config-file=tests/clamd.conf
       - name: Run tests
-        run: cargo test
+        run: cargo test --all-features
       - name: Shutdown clamd
         run: echo SHUTDOWN | nc localhost 3310

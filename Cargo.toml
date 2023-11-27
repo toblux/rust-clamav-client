@@ -1,6 +1,6 @@
 [package]
 name = "clamav-client"
-version = "0.2.2"
+version = "0.3.0"
 authors = ["Thorsten Blum"]
 edition = "2021"
 homepage = "https://github.com/toblux/rust-clamav-client"
@@ -8,4 +8,13 @@ repository = "https://github.com/toblux/rust-clamav-client"
 description = "ClamAV client library"
 readme = "README.md"
 license = "MIT"
-keywords = ["clamav", "clamd", "anitvirus"]
+keywords = ["clamav", "clamd", "anitvirus", "async"]
+
+[dependencies]
+tokio = { version = "1.34.0", features = ["fs", "io-util", "net"], optional = true }
+
+[dev-dependencies]
+tokio = { version = "1.34.0", features = ["io-std", "macros", "rt"] }
+
+[features]
+tokio = ["dep:tokio"]
