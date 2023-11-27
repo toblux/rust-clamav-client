@@ -1,4 +1,4 @@
-use std::{path::Path, pin::Pin};
+use std::path::Path;
 use tokio::{
     fs::File,
     io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt},
@@ -7,7 +7,7 @@ use tokio::{
 
 use super::{IoResult, DEFAULT_CHUNK_SIZE};
 
-async fn ping<RW: AsyncRead + AsyncWrite>(mut stream: Pin<&mut RW>) -> IoResult {
+async fn ping<RW: AsyncRead + AsyncWrite + Unpin>(mut stream: RW) -> IoResult {
     stream.write_all(b"zPING\0").await?;
 
     let capacity = b"PONG\0".len();
@@ -16,10 +16,10 @@ async fn ping<RW: AsyncRead + AsyncWrite>(mut stream: Pin<&mut RW>) -> IoResult 
     Ok(response)
 }
 
-async fn scan<R: AsyncRead, RW: AsyncRead + AsyncWrite>(
-    mut input: Pin<&mut R>,
+async fn scan<R: AsyncRead + Unpin, RW: AsyncRead + AsyncWrite + Unpin>(
+    mut input: R,
     chunk_size: Option<usize>,
-    mut stream: Pin<&mut RW>,
+    mut stream: RW,
 ) -> IoResult {
     stream.write_all(b"zINSTREAM\0").await?;
 
@@ -66,9 +66,6 @@ pub async fn ping_socket<P: AsRef<Path>>(socket_path: P) -> IoResult {
     use tokio::net::UnixStream;
 
     let stream = UnixStream::connect(socket_path).await?;
-
-    tokio::pin!(stream);
-
     ping(stream).await
 }
 
@@ -97,10 +94,6 @@ pub async fn scan_file_socket<P: AsRef<Path>>(
 
     let file = File::open(path).await?;
     let stream = UnixStream::connect(socket_path).await?;
-
-    tokio::pin!(file);
-    tokio::pin!(stream);
-
     scan(file, chunk_size, stream).await
 }
 
@@ -128,10 +121,6 @@ pub async fn scan_buffer_socket<P: AsRef<Path>>(
     use tokio::net::UnixStream;
 
     let stream = UnixStream::connect(socket_path).await?;
-
-    tokio::pin!(buffer);
-    tokio::pin!(stream);
-
     scan(buffer, chunk_size, stream).await
 }
 
@@ -155,9 +144,6 @@ pub async fn scan_buffer_socket<P: AsRef<Path>>(
 ///
 pub async fn ping_tcp<A: ToSocketAddrs>(host_address: A) -> IoResult {
     let stream = TcpStream::connect(host_address).await?;
-
-    tokio::pin!(stream);
-
     ping(stream).await
 }
 
@@ -183,10 +169,6 @@ pub async fn scan_file_tcp<P: AsRef<Path>, A: ToSocketAddrs>(
 ) -> IoResult {
     let file = File::open(path).await?;
     let stream = TcpStream::connect(host_address).await?;
-
-    tokio::pin!(file);
-    tokio::pin!(stream);
-
     scan(file, chunk_size, stream).await
 }
 
@@ -211,9 +193,5 @@ pub async fn scan_buffer_tcp<A: ToSocketAddrs>(
     chunk_size: Option<usize>,
 ) -> IoResult {
     let stream = TcpStream::connect(host_address).await?;
-
-    tokio::pin!(buffer);
-    tokio::pin!(stream);
-
     scan(buffer, chunk_size, stream).await
 }
