@@ -2,7 +2,7 @@ name: Run tests
 on: [push, pull_request]
 
 jobs:
-  test:
+  test_ubuntu:
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
@@ -19,3 +19,27 @@ jobs:
         run: cargo test --all-features
       - name: Shutdown clamd
         run: echo SHUTDOWN | nc localhost 3310
+  test_windows:
+    env:
+      CLAMAV_WIN_VERSION: clamav-1.0.4.win.x64
+    runs-on: windows-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+      - name: Install ClamAV
+        run: |
+          Invoke-WebRequest https://www.clamav.net/downloads/production/${{ env.CLAMAV_WIN_VERSION }}.zip -O clamav.zip
+          tar -xf clamav.zip
+      - name: Update ClamAV virus databases
+        run: ${{ env.CLAMAV_WIN_VERSION }}\freshclam.exe --config-file=tests\freshclam.conf --quiet
+      - name: Start clamd
+        run: |
+          cp tests\clamd.conf ${{ env.CLAMAV_WIN_VERSION }}
+          ${{ env.CLAMAV_WIN_VERSION }}\clamd.exe --install-service
+          net start clamd
+      - name: Run tests
+        run: cargo test --all-features
+      - name: Shutdown clamd
+        run: |
+          net stop clamd
+          ${{ env.CLAMAV_WIN_VERSION }}\clamd.exe --uninstall-service
