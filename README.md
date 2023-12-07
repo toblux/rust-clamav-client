@@ -10,14 +10,14 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-clamav-client = "0.3.1"
+clamav-client = "0.3.2"
 ```
 
 To use the `async` functions in `clamav_client::tokio`, add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-clamav-client = { version = "0.3.1", features = ["tokio"] }
+clamav-client = { version = "0.3.2", features = ["tokio"] }
 ```
 
 ## Usage
@@ -64,7 +64,7 @@ if data_clean {
 async fn tokio_example() {
     let clamd_host_address = "localhost:3310";
 
-    // Ping clamd to make sure the server is available and accepting TCP connections
+    // Ping clamd asynchronously and await the result
     let clamd_available = match clamav_client::tokio::ping_tcp(clamd_host_address).await {
         Ok(ping_response) => ping_response == b"PONG\0",
         Err(_) => false,
@@ -78,7 +78,7 @@ async fn tokio_example() {
     let file_path = "tests/eicar.txt";
     let buffer = br#"X5O!P%@AP[4\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*"#;
 
-    // Scan file and in-memory data for viruses and wait for the results
+    // Concurrently scan a file and a data buffer for viruses
     let (scan_file_result, scan_buffer_result) = tokio::join!(
         clamav_client::tokio::scan_file_tcp(file_path, clamd_host_address, None),
         clamav_client::tokio::scan_buffer_tcp(buffer, clamd_host_address, None)
