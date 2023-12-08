@@ -4,6 +4,8 @@ A simple ClamAV client to stream files or in-memory data to [clamd](https://linu
 
 Please note: The functions `ping_socket`, `scan_file_socket`, and `scan_buffer_socket` are only available on Unix platforms.
 
+![Workflow status](https://github.com/toblux/rust-clamav-client/actions/workflows/test.yml/badge.svg)
+
 ## Installation
 
 Add this to your `Cargo.toml`:
