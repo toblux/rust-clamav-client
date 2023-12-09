@@ -4,7 +4,7 @@ use tokio::{
     io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt},
     net::{TcpStream, ToSocketAddrs},
 };
-#[cfg(feature = "stream")]
+#[cfg(feature = "tokio-stream")]
 use tokio_stream::{Stream, StreamExt};
 
 use super::{IoResult, DEFAULT_CHUNK_SIZE};
@@ -45,7 +45,7 @@ async fn scan<R: AsyncRead + Unpin, RW: AsyncRead + AsyncWrite + Unpin>(
     Ok(response)
 }
 
-#[cfg(feature = "stream")]
+#[cfg(feature = "tokio-stream")]
 async fn scan_stream<S, E, RW>(
     input: S,
     chunk_size: Option<usize>,
@@ -176,7 +176,7 @@ pub async fn scan_buffer_socket<P: AsRef<Path>>(
 ///
 /// An `Result` containing the server's response as a vector of bytes
 ///
-#[cfg(feature = "stream")]
+#[cfg(feature = "tokio-stream")]
 pub async fn scan_stream_socket<S, E, P>(
     stream: S,
     socket_path: P,
@@ -280,7 +280,7 @@ pub async fn scan_buffer_tcp<A: ToSocketAddrs>(
 ///
 /// An `Result` containing the server's response as a vector of bytes
 ///
-#[cfg(feature = "stream")]
+#[cfg(feature = "tokio-stream")]
 pub async fn scan_stream_tcp<S, E, A>(
     stream: S,
     host_address: A,

@@ -97,7 +97,7 @@ async fn async_scan_socket_infected_buffer() {
 }
 
 #[tokio::test]
-#[cfg(all(feature = "tokio", feature = "stream"))]
+#[cfg(all(feature = "tokio", feature = "tokio-stream"))]
 async fn async_scan_socket_infected_stream() {
     use tokio::fs::File;
     use tokio_stream::StreamExt;
@@ -147,7 +147,7 @@ async fn async_scan_socket_clean_file() {
 }
 
 #[tokio::test]
-#[cfg(all(feature = "tokio", feature = "stream"))]
+#[cfg(all(feature = "tokio", feature = "tokio-stream"))]
 async fn async_scan_socket_clean_stream() {
     use tokio::fs::File;
     use tokio_stream::StreamExt;
@@ -201,7 +201,7 @@ async fn async_scan_socket_oversized_file() {
 
 #[ignore]
 #[tokio::test]
-#[cfg(all(feature = "tokio", feature = "stream"))]
+#[cfg(all(feature = "tokio", feature = "tokio-stream"))]
 async fn async_scan_socket_oversized_stream() {
     use tokio::fs::File;
     use tokio_stream::StreamExt;
@@ -294,7 +294,7 @@ async fn async_scan_tcp_infected_buffer() {
 }
 
 #[tokio::test]
-#[cfg(all(feature = "tokio", feature = "stream"))]
+#[cfg(all(feature = "tokio", feature = "tokio-stream"))]
 async fn async_scan_tcp_infected_stream() {
     use tokio::fs::File;
     use tokio_stream::StreamExt;
@@ -343,7 +343,7 @@ async fn async_scan_tcp_clean_file() {
 }
 
 #[tokio::test]
-#[cfg(all(feature = "tokio", feature = "stream"))]
+#[cfg(all(feature = "tokio", feature = "tokio-stream"))]
 async fn async_scan_tcp_clean_stream() {
     use tokio::fs::File;
     use tokio_stream::StreamExt;
@@ -395,7 +395,7 @@ async fn async_scan_tcp_oversized_file() {
 
 #[ignore]
 #[tokio::test]
-#[cfg(all(feature = "tokio", feature = "stream"))]
+#[cfg(all(feature = "tokio", feature = "tokio-stream"))]
 async fn async_scan_tcp_oversized_stream() {
     use tokio::fs::File;
     use tokio_stream::StreamExt;

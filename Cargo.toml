@@ -20,7 +20,7 @@ tokio-util = { version = "0.7.10", features = ["io"] }
 
 [features]
 tokio = ["dep:tokio"]
-stream = ["dep:tokio-stream"]
+tokio-stream = ["dep:tokio-stream"]
 
 [package.metadata.docs.rs]
-features = ["tokio", "stream"]
+features = ["tokio", "tokio-stream"]
