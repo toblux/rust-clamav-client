@@ -47,16 +47,11 @@ async fn scan<R: AsyncRead + Unpin, RW: AsyncRead + AsyncWrite + Unpin>(
 }
 
 #[cfg(feature = "tokio-stream")]
-async fn scan_stream<S, E, RW>(
+async fn scan_stream<S: Stream<Item = IoResult>, RW: AsyncRead + AsyncWrite + Unpin>(
     input_stream: S,
     chunk_size: Option<usize>,
     mut output_stream: RW,
-) -> Result<Vec<u8>, E>
-where
-    S: Stream<Item = Result<Vec<u8>, E>>,
-    E: From<std::io::Error>,
-    RW: AsyncRead + AsyncWrite + Unpin,
-{
+) -> IoResult {
     output_stream.write_all(b"zINSTREAM\0").await?;
 
     let chunk_size = chunk_size
@@ -175,19 +170,14 @@ pub async fn scan_buffer_socket<P: AsRef<Path>>(
 ///
 /// # Returns
 ///
-/// A `Result` containing the server's response as a vector of bytes
+/// An `IoResult` containing the server's response as a vector of bytes
 ///
 #[cfg(all(unix, feature = "tokio-stream"))]
-pub async fn scan_stream_socket<S, E, P>(
+pub async fn scan_stream_socket<S: Stream<Item = IoResult>, P: AsRef<Path>>(
     input_stream: S,
     socket_path: P,
     chunk_size: Option<usize>,
-) -> Result<Vec<u8>, E>
-where
-    S: Stream<Item = Result<Vec<u8>, E>>,
-    E: From<std::io::Error>,
-    P: AsRef<Path>,
-{
+) -> IoResult {
     use tokio::net::UnixStream;
 
     let output_stream = UnixStream::connect(socket_path).await?;
@@ -279,19 +269,14 @@ pub async fn scan_buffer_tcp<A: ToSocketAddrs>(
 ///
 /// # Returns
 ///
-/// A `Result` containing the server's response as a vector of bytes
+/// An `IoResult` containing the server's response as a vector of bytes
 ///
 #[cfg(feature = "tokio-stream")]
-pub async fn scan_stream_tcp<S, E, A>(
+pub async fn scan_stream_tcp<S: Stream<Item = IoResult>, A: ToSocketAddrs>(
     input_stream: S,
     host_address: A,
     chunk_size: Option<usize>,
-) -> Result<Vec<u8>, E>
-where
-    S: Stream<Item = Result<Vec<u8>, E>>,
-    E: From<std::io::Error>,
-    A: ToSocketAddrs,
-{
+) -> IoResult {
     let output_stream = TcpStream::connect(host_address).await?;
     scan_stream(input_stream, chunk_size, output_stream).await
 }
