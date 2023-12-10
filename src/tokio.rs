@@ -177,7 +177,7 @@ pub async fn scan_buffer_socket<P: AsRef<Path>>(
 ///
 /// A `Result` containing the server's response as a vector of bytes
 ///
-#[cfg(feature = "tokio-stream")]
+#[cfg(all(unix, feature = "tokio-stream"))]
 pub async fn scan_stream_socket<S, E, P>(
     stream: S,
     socket_path: P,
