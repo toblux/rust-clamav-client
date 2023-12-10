@@ -47,7 +47,10 @@ async fn scan<R: AsyncRead + Unpin, RW: AsyncRead + AsyncWrite + Unpin>(
 }
 
 #[cfg(feature = "tokio-stream")]
-async fn scan_stream<S: Stream<Item = IoResult>, RW: AsyncRead + AsyncWrite + Unpin>(
+async fn scan_stream<
+    S: Stream<Item = Result<bytes::Bytes, std::io::Error>>,
+    RW: AsyncRead + AsyncWrite + Unpin,
+>(
     input_stream: S,
     chunk_size: Option<usize>,
     mut output_stream: RW,
@@ -61,8 +64,9 @@ async fn scan_stream<S: Stream<Item = IoResult>, RW: AsyncRead + AsyncWrite + Un
     tokio::pin!(input_stream);
 
     while let Some(bytes) = input_stream.next().await {
-        let mut bytes = bytes?;
-        for chunk in bytes.chunks_mut(chunk_size) {
+        let bytes = bytes?;
+        let bytes = bytes.as_ref();
+        for chunk in bytes.chunks(chunk_size) {
             let len = chunk.len();
             output_stream.write_all(&(len as u32).to_be_bytes()).await?;
             output_stream.write_all(chunk).await?;
@@ -173,7 +177,10 @@ pub async fn scan_buffer_socket<P: AsRef<Path>>(
 /// An `IoResult` containing the server's response as a vector of bytes
 ///
 #[cfg(all(unix, feature = "tokio-stream"))]
-pub async fn scan_stream_socket<S: Stream<Item = IoResult>, P: AsRef<Path>>(
+pub async fn scan_stream_socket<
+    S: Stream<Item = Result<bytes::Bytes, std::io::Error>>,
+    P: AsRef<Path>,
+>(
     input_stream: S,
     socket_path: P,
     chunk_size: Option<usize>,
@@ -272,7 +279,10 @@ pub async fn scan_buffer_tcp<A: ToSocketAddrs>(
 /// An `IoResult` containing the server's response as a vector of bytes
 ///
 #[cfg(feature = "tokio-stream")]
-pub async fn scan_stream_tcp<S: Stream<Item = IoResult>, A: ToSocketAddrs>(
+pub async fn scan_stream_tcp<
+    S: Stream<Item = Result<bytes::Bytes, std::io::Error>>,
+    A: ToSocketAddrs,
+>(
     input_stream: S,
     host_address: A,
     chunk_size: Option<usize>,

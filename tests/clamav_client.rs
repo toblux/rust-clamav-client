@@ -100,12 +100,11 @@ async fn async_scan_socket_infected_buffer() {
 #[cfg(all(unix, feature = "tokio-stream"))]
 async fn async_scan_socket_infected_stream() {
     use tokio::fs::File;
-    use tokio_stream::StreamExt;
     use tokio_util::io::ReaderStream;
 
     let err_msg = format!("Could not read test file {}", EICAR_TEST_FILE_PATH);
     let file = File::open(EICAR_TEST_FILE_PATH).await.expect(&err_msg);
-    let stream = ReaderStream::new(file).map(|res| res.map(|b| b.to_vec()));
+    let stream = ReaderStream::new(file);
 
     let err_msg = format!(
         "Could not scan test file {} via socket at {}",
@@ -150,12 +149,11 @@ async fn async_scan_socket_clean_file() {
 #[cfg(all(unix, feature = "tokio-stream"))]
 async fn async_scan_socket_clean_stream() {
     use tokio::fs::File;
-    use tokio_stream::StreamExt;
     use tokio_util::io::ReaderStream;
 
     let err_msg = format!("Could not read test file {}", CLEAN_TEST_FILE_PATH);
     let file = File::open(CLEAN_TEST_FILE_PATH).await.expect(&err_msg);
-    let stream = ReaderStream::new(file).map(|res| res.map(|b| b.to_vec()));
+    let stream = ReaderStream::new(file);
 
     let err_msg = format!(
         "Could not scan test file {} via socket at {}",
@@ -201,12 +199,11 @@ async fn async_scan_socket_oversized_file() {
 #[cfg(all(unix, feature = "tokio-stream"))]
 async fn async_scan_socket_oversized_stream() {
     use tokio::fs::File;
-    use tokio_stream::StreamExt;
     use tokio_util::io::ReaderStream;
 
     let err_msg = format!("Could not read test file {}", OVERSIZED_TEST_FILE_PATH);
     let file = File::open(OVERSIZED_TEST_FILE_PATH).await.expect(&err_msg);
-    let stream = ReaderStream::new(file).map(|res| res.map(|b| b.to_vec()));
+    let stream = ReaderStream::new(file);
 
     let err_msg = format!(
         "Could not scan test file {} via socket at {}",
@@ -294,12 +291,11 @@ async fn async_scan_tcp_infected_buffer() {
 #[cfg(feature = "tokio-stream")]
 async fn async_scan_tcp_infected_stream() {
     use tokio::fs::File;
-    use tokio_stream::StreamExt;
     use tokio_util::io::ReaderStream;
 
     let err_msg = format!("Could not read test file {}", EICAR_TEST_FILE_PATH);
     let file = File::open(EICAR_TEST_FILE_PATH).await.expect(&err_msg);
-    let stream = ReaderStream::new(file).map(|res| res.map(|b| b.to_vec()));
+    let stream = ReaderStream::new(file);
 
     let err_msg = format!(
         "Could not scan test file {} via TCP at {}",
@@ -343,12 +339,11 @@ async fn async_scan_tcp_clean_file() {
 #[cfg(feature = "tokio-stream")]
 async fn async_scan_tcp_clean_stream() {
     use tokio::fs::File;
-    use tokio_stream::StreamExt;
     use tokio_util::io::ReaderStream;
 
     let err_msg = format!("Could not read test file {}", CLEAN_TEST_FILE_PATH);
     let file = File::open(CLEAN_TEST_FILE_PATH).await.expect(&err_msg);
-    let stream = ReaderStream::new(file).map(|res| res.map(|b| b.to_vec()));
+    let stream = ReaderStream::new(file);
 
     let err_msg = format!(
         "Could not scan test file {} via TCP at {}",
@@ -392,12 +387,11 @@ async fn async_scan_tcp_oversized_file() {
 #[cfg(feature = "tokio-stream")]
 async fn async_scan_tcp_oversized_stream() {
     use tokio::fs::File;
-    use tokio_stream::StreamExt;
     use tokio_util::io::ReaderStream;
 
     let err_msg = format!("Could not read test file {}", OVERSIZED_TEST_FILE_PATH);
     let file = File::open(OVERSIZED_TEST_FILE_PATH).await.expect(&err_msg);
-    let stream = ReaderStream::new(file).map(|res| res.map(|b| b.to_vec()));
+    let stream = ReaderStream::new(file);
 
     let err_msg = format!(
         "Could not scan test file {} via TCP at {}",
