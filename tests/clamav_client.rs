@@ -168,7 +168,6 @@ async fn async_scan_socket_clean_stream() {
     assert_eq!(clamav_client::clean(&response), Ok(true));
 }
 
-#[ignore]
 #[test]
 #[cfg(unix)]
 fn scan_socket_oversized_file() {
@@ -183,7 +182,6 @@ fn scan_socket_oversized_file() {
     assert_eq!(clamav_client::clean(&response), Ok(false));
 }
 
-#[ignore]
 #[tokio::test]
 #[cfg(all(unix, feature = "tokio"))]
 async fn async_scan_socket_oversized_file() {
@@ -199,7 +197,6 @@ async fn async_scan_socket_oversized_file() {
     assert_eq!(clamav_client::clean(&response), Ok(false));
 }
 
-#[ignore]
 #[tokio::test]
 #[cfg(all(feature = "tokio", feature = "tokio-stream"))]
 async fn async_scan_socket_oversized_stream() {
@@ -364,7 +361,6 @@ async fn async_scan_tcp_clean_stream() {
     assert_eq!(clamav_client::clean(&response), Ok(true));
 }
 
-#[ignore]
 #[test]
 fn scan_tcp_oversized_file() {
     let err_msg = format!(
@@ -377,7 +373,6 @@ fn scan_tcp_oversized_file() {
     assert_eq!(clamav_client::clean(&response), Ok(false));
 }
 
-#[ignore]
 #[tokio::test]
 #[cfg(feature = "tokio")]
 async fn async_scan_tcp_oversized_file() {
@@ -393,7 +388,6 @@ async fn async_scan_tcp_oversized_file() {
     assert_eq!(clamav_client::clean(&response), Ok(false));
 }
 
-#[ignore]
 #[tokio::test]
 #[cfg(all(feature = "tokio", feature = "tokio-stream"))]
 async fn async_scan_tcp_oversized_stream() {

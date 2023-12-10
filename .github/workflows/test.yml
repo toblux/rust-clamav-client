@@ -16,7 +16,7 @@ jobs:
       - name: Start clamd
         run: clamd --config-file=tests/clamd.conf
       - name: Run tests
-        run: cargo test --all-features
+        run: cargo test --all-features -- --skip oversized
       - name: Shutdown clamd
         run: echo SHUTDOWN | nc localhost 3310
   test_windows:
@@ -38,7 +38,7 @@ jobs:
           ${{ env.CLAMAV_WIN_VERSION }}\clamd.exe --install-service
           net start clamd
       - name: Run tests
-        run: cargo test --all-features
+        run: cargo test --all-features -- --skip oversized
       - name: Shutdown clamd
         run: |
           net stop clamd
