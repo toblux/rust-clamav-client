@@ -4,6 +4,7 @@ use tokio::{
     io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt},
     net::{TcpStream, ToSocketAddrs},
 };
+
 #[cfg(feature = "tokio-stream")]
 use tokio_stream::{Stream, StreamExt};
 
@@ -163,8 +164,8 @@ pub async fn scan_buffer_socket<P: AsRef<Path>>(
 
 /// Scans a stream for viruses using a Unix socket connection
 ///
-/// This function sends the provided stream to a ClamAV server through
-/// a Unix socket connection for scanning.
+/// This function sends the provided stream to a ClamAV server through a Unix
+/// socket connection for scanning.
 ///
 /// # Arguments
 ///
@@ -174,7 +175,7 @@ pub async fn scan_buffer_socket<P: AsRef<Path>>(
 ///
 /// # Returns
 ///
-/// An `Result` containing the server's response as a vector of bytes
+/// A `Result` containing the server's response as a vector of bytes
 ///
 #[cfg(feature = "tokio-stream")]
 pub async fn scan_stream_socket<S, E, P>(
@@ -267,8 +268,8 @@ pub async fn scan_buffer_tcp<A: ToSocketAddrs>(
 
 /// Scans a stream for viruses using a TCP connection
 ///
-/// This function sends the provided stream to a ClamAV server through
-/// a TCP connection for scanning.
+/// This function sends the provided stream to a ClamAV server through a TCP
+/// connection for scanning.
 ///
 /// # Arguments
 ///
@@ -278,7 +279,7 @@ pub async fn scan_buffer_tcp<A: ToSocketAddrs>(
 ///
 /// # Returns
 ///
-/// An `Result` containing the server's response as a vector of bytes
+/// A `Result` containing the server's response as a vector of bytes
 ///
 #[cfg(feature = "tokio-stream")]
 pub async fn scan_stream_tcp<S, E, A>(
