@@ -48,36 +48,36 @@ async fn scan<R: AsyncRead + Unpin, RW: AsyncRead + AsyncWrite + Unpin>(
 
 #[cfg(feature = "tokio-stream")]
 async fn scan_stream<S, E, RW>(
-    input: S,
+    input_stream: S,
     chunk_size: Option<usize>,
-    mut output: RW,
+    mut output_stream: RW,
 ) -> Result<Vec<u8>, E>
 where
     S: Stream<Item = Result<Vec<u8>, E>>,
     E: From<std::io::Error>,
     RW: AsyncRead + AsyncWrite + Unpin,
 {
-    output.write_all(b"zINSTREAM\0").await?;
+    output_stream.write_all(b"zINSTREAM\0").await?;
 
     let chunk_size = chunk_size
         .unwrap_or(DEFAULT_CHUNK_SIZE)
         .min(u32::MAX as usize);
 
-    tokio::pin!(input);
+    tokio::pin!(input_stream);
 
-    while let Some(bytes) = input.next().await {
+    while let Some(bytes) = input_stream.next().await {
         let mut bytes = bytes?;
         for chunk in bytes.chunks_mut(chunk_size) {
             let len = chunk.len();
-            output.write_all(&(len as u32).to_be_bytes()).await?;
-            output.write_all(chunk).await?;
+            output_stream.write_all(&(len as u32).to_be_bytes()).await?;
+            output_stream.write_all(chunk).await?;
         }
     }
 
-    output.write_all(&[0; 4]).await?;
+    output_stream.write_all(&[0; 4]).await?;
 
     let mut response = Vec::new();
-    output.read_to_end(&mut response).await?;
+    output_stream.read_to_end(&mut response).await?;
     Ok(response)
 }
 
@@ -169,7 +169,7 @@ pub async fn scan_buffer_socket<P: AsRef<Path>>(
 ///
 /// # Arguments
 ///
-/// * `stream`: The stream to be scanned
+/// * `input_stream`: The stream to be scanned
 /// * `socket_path`: The path to the Unix socket for the ClamAV server
 /// * `chunk_size`: An optional chunk size for reading data. If `None`, a default chunk size is used
 ///
@@ -179,7 +179,7 @@ pub async fn scan_buffer_socket<P: AsRef<Path>>(
 ///
 #[cfg(all(unix, feature = "tokio-stream"))]
 pub async fn scan_stream_socket<S, E, P>(
-    stream: S,
+    input_stream: S,
     socket_path: P,
     chunk_size: Option<usize>,
 ) -> Result<Vec<u8>, E>
@@ -190,8 +190,8 @@ where
 {
     use tokio::net::UnixStream;
 
-    let output = UnixStream::connect(socket_path).await?;
-    scan_stream(stream, chunk_size, output).await
+    let output_stream = UnixStream::connect(socket_path).await?;
+    scan_stream(input_stream, chunk_size, output_stream).await
 }
 
 /// Sends a ping request to ClamAV using a TCP connection
@@ -273,7 +273,7 @@ pub async fn scan_buffer_tcp<A: ToSocketAddrs>(
 ///
 /// # Arguments
 ///
-/// * `stream`: The stream to be scanned
+/// * `input_stream`: The stream to be scanned
 /// * `host_address`: The address (host and port) of the ClamAV server
 /// * `chunk_size`: An optional chunk size for reading data. If `None`, a default chunk size is used
 ///
@@ -283,7 +283,7 @@ pub async fn scan_buffer_tcp<A: ToSocketAddrs>(
 ///
 #[cfg(feature = "tokio-stream")]
 pub async fn scan_stream_tcp<S, E, A>(
-    stream: S,
+    input_stream: S,
     host_address: A,
     chunk_size: Option<usize>,
 ) -> Result<Vec<u8>, E>
@@ -292,6 +292,6 @@ where
     E: From<std::io::Error>,
     A: ToSocketAddrs,
 {
-    let output = TcpStream::connect(host_address).await?;
-    scan_stream(stream, chunk_size, output).await
+    let output_stream = TcpStream::connect(host_address).await?;
+    scan_stream(input_stream, chunk_size, output_stream).await
 }
