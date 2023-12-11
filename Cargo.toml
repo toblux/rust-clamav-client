@@ -5,10 +5,10 @@ authors = ["Thorsten Blum <thorsten.blum@toblux.com>"]
 edition = "2021"
 homepage = "https://github.com/toblux/rust-clamav-client"
 repository = "https://github.com/toblux/rust-clamav-client"
-description = "ClamAV client library"
+description = "ClamAV client library with optional Tokio support"
 readme = "README.md"
 license = "MIT"
-keywords = ["clamav", "clamd", "anitvirus", "async"]
+keywords = ["clamav", "clamd", "anitvirus", "async", "tokio"]
 
 [dependencies]
 tokio = { version = "1.34.0", features = ["fs", "io-util", "net"], optional = true }

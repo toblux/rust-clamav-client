@@ -1,8 +1,8 @@
 # Rust ClamAV Client
 
-A simple ClamAV client to stream files or in-memory data to [clamd](https://linux.die.net/man/8/clamd) for antivirus scanning.
+A simple ClamAV client to send files, in-memory data, and Tokio streams to [clamd](https://linux.die.net/man/8/clamd) for antivirus scanning.
 
-Please note: The functions `ping_socket`, `scan_file_socket`, and `scan_buffer_socket` are only available on Unix platforms.
+Please note: The functions `ping_socket`, `scan_file_socket`, `scan_buffer_socket`, and `scan_stream_socket` are only available on Unix platforms.
 
 ![Workflow status](https://github.com/toblux/rust-clamav-client/actions/workflows/test.yml/badge.svg)
 
@@ -20,6 +20,13 @@ To use the `async` functions in `clamav_client::tokio`, add this to your `Cargo.
 ```toml
 [dependencies]
 clamav-client = { version = "0.3.3", features = ["tokio"] }
+```
+
+To scan Tokio streams, enable the `tokio-stream` feature instead and add this to your `Cargo.toml`:
+
+```toml
+[dependencies]
+clamav-client = { version = "0.3.3", features = ["tokio-stream"] }
 ```
 
 ## Usage
