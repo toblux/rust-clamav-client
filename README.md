@@ -12,14 +12,14 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-clamav-client = "0.3.2"
+clamav-client = "0.3.3"
 ```
 
 To use the `async` functions in `clamav_client::tokio`, add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-clamav-client = { version = "0.3.2", features = ["tokio"] }
+clamav-client = { version = "0.3.3", features = ["tokio"] }
 ```
 
 ## Usage
@@ -109,3 +109,4 @@ async fn tokio_example() {
 - [Christopher Prohm](https://github.com/chmp)
 - [Paul Makles](https://github.com/insertish)
 - [Sean Clarke](https://github.com/SeanEClarke)
+- [Kanji Tanaka](https://github.com/kaicoh)

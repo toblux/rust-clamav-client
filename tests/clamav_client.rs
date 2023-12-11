@@ -96,6 +96,27 @@ async fn async_scan_socket_infected_buffer() {
     assert_eq!(clamav_client::clean(&response), Ok(false));
 }
 
+#[tokio::test]
+#[cfg(all(unix, feature = "tokio-stream"))]
+async fn async_scan_socket_infected_stream() {
+    use tokio::fs::File;
+    use tokio_util::io::ReaderStream;
+
+    let err_msg = format!("Could not read test file {}", EICAR_TEST_FILE_PATH);
+    let file = File::open(EICAR_TEST_FILE_PATH).await.expect(&err_msg);
+    let stream = ReaderStream::new(file);
+
+    let err_msg = format!(
+        "Could not scan test file {} via socket at {}",
+        EICAR_TEST_FILE_PATH, TEST_SOCKET_PATH
+    );
+    let response = clamav_client::tokio::scan_stream_socket(stream, TEST_SOCKET_PATH, None)
+        .await
+        .expect(&err_msg);
+    assert_eq!(&response, EICAR_FILE_SIGNATURE_FOUND_RESPONSE);
+    assert_eq!(clamav_client::clean(&response), Ok(false));
+}
+
 #[test]
 #[cfg(unix)]
 fn scan_socket_clean_file() {
@@ -124,7 +145,27 @@ async fn async_scan_socket_clean_file() {
     assert_eq!(clamav_client::clean(&response), Ok(true));
 }
 
-#[ignore]
+#[tokio::test]
+#[cfg(all(unix, feature = "tokio-stream"))]
+async fn async_scan_socket_clean_stream() {
+    use tokio::fs::File;
+    use tokio_util::io::ReaderStream;
+
+    let err_msg = format!("Could not read test file {}", CLEAN_TEST_FILE_PATH);
+    let file = File::open(CLEAN_TEST_FILE_PATH).await.expect(&err_msg);
+    let stream = ReaderStream::new(file);
+
+    let err_msg = format!(
+        "Could not scan test file {} via socket at {}",
+        CLEAN_TEST_FILE_PATH, TEST_SOCKET_PATH
+    );
+    let response = clamav_client::tokio::scan_stream_socket(stream, TEST_SOCKET_PATH, None)
+        .await
+        .expect(&err_msg);
+    assert_eq!(&response, OK_RESPONSE);
+    assert_eq!(clamav_client::clean(&response), Ok(true));
+}
+
 #[test]
 #[cfg(unix)]
 fn scan_socket_oversized_file() {
@@ -139,7 +180,6 @@ fn scan_socket_oversized_file() {
     assert_eq!(clamav_client::clean(&response), Ok(false));
 }
 
-#[ignore]
 #[tokio::test]
 #[cfg(all(unix, feature = "tokio"))]
 async fn async_scan_socket_oversized_file() {
@@ -151,6 +191,27 @@ async fn async_scan_socket_oversized_file() {
         clamav_client::tokio::scan_file_socket(OVERSIZED_TEST_FILE_PATH, TEST_SOCKET_PATH, None)
             .await
             .expect(&err_msg);
+    assert_eq!(&response, SIZE_LIMIT_EXCEEDED_ERROR_RESPONSE);
+    assert_eq!(clamav_client::clean(&response), Ok(false));
+}
+
+#[tokio::test]
+#[cfg(all(unix, feature = "tokio-stream"))]
+async fn async_scan_socket_oversized_stream() {
+    use tokio::fs::File;
+    use tokio_util::io::ReaderStream;
+
+    let err_msg = format!("Could not read test file {}", OVERSIZED_TEST_FILE_PATH);
+    let file = File::open(OVERSIZED_TEST_FILE_PATH).await.expect(&err_msg);
+    let stream = ReaderStream::new(file);
+
+    let err_msg = format!(
+        "Could not scan test file {} via socket at {}",
+        OVERSIZED_TEST_FILE_PATH, TEST_SOCKET_PATH
+    );
+    let response = clamav_client::tokio::scan_stream_socket(stream, TEST_SOCKET_PATH, None)
+        .await
+        .expect(&err_msg);
     assert_eq!(&response, SIZE_LIMIT_EXCEEDED_ERROR_RESPONSE);
     assert_eq!(clamav_client::clean(&response), Ok(false));
 }
@@ -226,6 +287,27 @@ async fn async_scan_tcp_infected_buffer() {
     assert_eq!(clamav_client::clean(&response), Ok(false));
 }
 
+#[tokio::test]
+#[cfg(feature = "tokio-stream")]
+async fn async_scan_tcp_infected_stream() {
+    use tokio::fs::File;
+    use tokio_util::io::ReaderStream;
+
+    let err_msg = format!("Could not read test file {}", EICAR_TEST_FILE_PATH);
+    let file = File::open(EICAR_TEST_FILE_PATH).await.expect(&err_msg);
+    let stream = ReaderStream::new(file);
+
+    let err_msg = format!(
+        "Could not scan test file {} via TCP at {}",
+        EICAR_TEST_FILE_PATH, TEST_HOST_ADDRESS
+    );
+    let response = clamav_client::tokio::scan_stream_tcp(stream, TEST_HOST_ADDRESS, None)
+        .await
+        .expect(&err_msg);
+    assert_eq!(&response, EICAR_FILE_SIGNATURE_FOUND_RESPONSE);
+    assert_eq!(clamav_client::clean(&response), Ok(false));
+}
+
 #[test]
 fn scan_tcp_clean_file() {
     let err_msg = format!(
@@ -253,7 +335,27 @@ async fn async_scan_tcp_clean_file() {
     assert_eq!(clamav_client::clean(&response), Ok(true));
 }
 
-#[ignore]
+#[tokio::test]
+#[cfg(feature = "tokio-stream")]
+async fn async_scan_tcp_clean_stream() {
+    use tokio::fs::File;
+    use tokio_util::io::ReaderStream;
+
+    let err_msg = format!("Could not read test file {}", CLEAN_TEST_FILE_PATH);
+    let file = File::open(CLEAN_TEST_FILE_PATH).await.expect(&err_msg);
+    let stream = ReaderStream::new(file);
+
+    let err_msg = format!(
+        "Could not scan test file {} via TCP at {}",
+        CLEAN_TEST_FILE_PATH, TEST_HOST_ADDRESS
+    );
+    let response = clamav_client::tokio::scan_stream_tcp(stream, TEST_HOST_ADDRESS, None)
+        .await
+        .expect(&err_msg);
+    assert_eq!(&response, OK_RESPONSE);
+    assert_eq!(clamav_client::clean(&response), Ok(true));
+}
+
 #[test]
 fn scan_tcp_oversized_file() {
     let err_msg = format!(
@@ -266,7 +368,6 @@ fn scan_tcp_oversized_file() {
     assert_eq!(clamav_client::clean(&response), Ok(false));
 }
 
-#[ignore]
 #[tokio::test]
 #[cfg(feature = "tokio")]
 async fn async_scan_tcp_oversized_file() {
@@ -278,6 +379,27 @@ async fn async_scan_tcp_oversized_file() {
         clamav_client::tokio::scan_file_tcp(OVERSIZED_TEST_FILE_PATH, TEST_HOST_ADDRESS, None)
             .await
             .expect(&err_msg);
+    assert_eq!(&response, SIZE_LIMIT_EXCEEDED_ERROR_RESPONSE);
+    assert_eq!(clamav_client::clean(&response), Ok(false));
+}
+
+#[tokio::test]
+#[cfg(feature = "tokio-stream")]
+async fn async_scan_tcp_oversized_stream() {
+    use tokio::fs::File;
+    use tokio_util::io::ReaderStream;
+
+    let err_msg = format!("Could not read test file {}", OVERSIZED_TEST_FILE_PATH);
+    let file = File::open(OVERSIZED_TEST_FILE_PATH).await.expect(&err_msg);
+    let stream = ReaderStream::new(file);
+
+    let err_msg = format!(
+        "Could not scan test file {} via TCP at {}",
+        OVERSIZED_TEST_FILE_PATH, TEST_HOST_ADDRESS
+    );
+    let response = clamav_client::tokio::scan_stream_tcp(stream, TEST_HOST_ADDRESS, None)
+        .await
+        .expect(&err_msg);
     assert_eq!(&response, SIZE_LIMIT_EXCEEDED_ERROR_RESPONSE);
     assert_eq!(clamav_client::clean(&response), Ok(false));
 }
