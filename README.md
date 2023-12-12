@@ -111,6 +111,8 @@ async fn tokio_example() {
 }
 ```
 
+More examples can be found in the [tests](tests/clamav_client.rs).
+
 ## Contributors
 
 - [Christopher Prohm](https://github.com/chmp)
