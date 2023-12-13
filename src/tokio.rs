@@ -8,12 +8,12 @@ use tokio::{
 #[cfg(feature = "tokio-stream")]
 use tokio_stream::{Stream, StreamExt};
 
-use super::{IoResult, DEFAULT_CHUNK_SIZE};
+use super::{IoResult, DEFAULT_CHUNK_SIZE, END_OF_STREAM, INSTREAM, PING, PONG};
 
 async fn ping<RW: AsyncRead + AsyncWrite + Unpin>(mut stream: RW) -> IoResult {
-    stream.write_all(b"zPING\0").await?;
+    stream.write_all(PING).await?;
 
-    let capacity = b"PONG\0".len();
+    let capacity = PONG.len();
     let mut response = Vec::with_capacity(capacity);
     stream.read_to_end(&mut response).await?;
     Ok(response)
@@ -24,7 +24,7 @@ async fn scan<R: AsyncRead + Unpin, RW: AsyncRead + AsyncWrite + Unpin>(
     chunk_size: Option<usize>,
     mut stream: RW,
 ) -> IoResult {
-    stream.write_all(b"zINSTREAM\0").await?;
+    stream.write_all(INSTREAM).await?;
 
     let chunk_size = chunk_size
         .unwrap_or(DEFAULT_CHUNK_SIZE)
@@ -36,7 +36,7 @@ async fn scan<R: AsyncRead + Unpin, RW: AsyncRead + AsyncWrite + Unpin>(
             stream.write_all(&(len as u32).to_be_bytes()).await?;
             stream.write_all(&buffer[..len]).await?;
         } else {
-            stream.write_all(&[0; 4]).await?;
+            stream.write_all(END_OF_STREAM).await?;
             break;
         }
     }
@@ -55,7 +55,7 @@ async fn scan_stream<
     chunk_size: Option<usize>,
     mut output_stream: RW,
 ) -> IoResult {
-    output_stream.write_all(b"zINSTREAM\0").await?;
+    output_stream.write_all(INSTREAM).await?;
 
     let chunk_size = chunk_size
         .unwrap_or(DEFAULT_CHUNK_SIZE)
@@ -73,7 +73,7 @@ async fn scan_stream<
         }
     }
 
-    output_stream.write_all(&[0; 4]).await?;
+    output_stream.write_all(END_OF_STREAM).await?;
 
     let mut response = Vec::new();
     output_stream.read_to_end(&mut response).await?;

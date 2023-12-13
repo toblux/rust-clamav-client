@@ -23,10 +23,16 @@ pub type Utf8Result = Result<bool, Utf8Error>;
 /// Default chunk size in bytes for reading data during scanning
 const DEFAULT_CHUNK_SIZE: usize = 4096;
 
-fn ping<RW: Read + Write>(mut stream: RW) -> IoResult {
-    stream.write_all(b"zPING\0")?;
+/// ClamAV commands
+const PING: &[u8; 6] = b"zPING\0";
+const PONG: &[u8; 5] = b"PONG\0";
+const INSTREAM: &[u8; 10] = b"zINSTREAM\0";
+const END_OF_STREAM: &[u8; 4] = &[0, 0, 0, 0];
 
-    let capacity = b"PONG\0".len();
+fn ping<RW: Read + Write>(mut stream: RW) -> IoResult {
+    stream.write_all(PING)?;
+
+    let capacity = PONG.len();
     let mut response = Vec::with_capacity(capacity);
     stream.read_to_end(&mut response)?;
     Ok(response)
@@ -37,7 +43,7 @@ fn scan<R: Read, RW: Read + Write>(
     chunk_size: Option<usize>,
     mut stream: RW,
 ) -> IoResult {
-    stream.write_all(b"zINSTREAM\0")?;
+    stream.write_all(INSTREAM)?;
 
     let chunk_size = chunk_size
         .unwrap_or(DEFAULT_CHUNK_SIZE)
@@ -49,7 +55,7 @@ fn scan<R: Read, RW: Read + Write>(
             stream.write_all(&(len as u32).to_be_bytes())?;
             stream.write_all(&buffer[..len])?;
         } else {
-            stream.write_all(&[0; 4])?;
+            stream.write_all(END_OF_STREAM)?;
             break;
         }
     }
