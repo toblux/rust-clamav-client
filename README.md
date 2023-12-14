@@ -113,6 +113,11 @@ async fn tokio_example() {
 
 More examples can be found in the [tests](tests/clamav_client.rs).
 
+## Links
+
+- [API documentation on docs.rs](https://docs.rs/clamav-client/latest/clamav_client/)
+- [clamav-client on crates.io](https://crates.io/crates/clamav-client/)
+
 ## Contributors
 
 - [Christopher Prohm](https://github.com/chmp)
