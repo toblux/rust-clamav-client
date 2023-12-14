@@ -9,12 +9,8 @@ jobs:
         uses: actions/checkout@v3
       - name: Install ClamAV daemon
         run: sudo apt-get install clamav-daemon
-      - name: Update ClamAV virus databases
-        run: |
-          sudo systemctl stop clamav-freshclam
-          sudo freshclam
       - name: Start clamd
-        run: clamd --config-file=tests/clamd.conf
+        run: clamd --config-file=tests/clamav/clamd.conf --datadir=tests/clamav/database/
       - name: Run tests
         run: cargo test --all-features -- --skip oversized
       - name: Shutdown clamd
@@ -30,11 +26,10 @@ jobs:
         run: |
           curl -L -o clamav.zip https://www.clamav.net/downloads/production/${{ env.CLAMAV_WIN_VERSION }}.zip
           tar -xf clamav.zip
-      - name: Update ClamAV virus databases
-        run: ${{ env.CLAMAV_WIN_VERSION }}\freshclam.exe --config-file=tests\freshclam.conf --quiet
       - name: Start clamd
         run: |
-          cp tests\clamd.conf ${{ env.CLAMAV_WIN_VERSION }}
+          cp -r tests\clamav\database ${{ env.CLAMAV_WIN_VERSION }}
+          cp tests\clamav\clamd.conf ${{ env.CLAMAV_WIN_VERSION }}
           ${{ env.CLAMAV_WIN_VERSION }}\clamd.exe --install-service
           net start clamd
       - name: Run tests
