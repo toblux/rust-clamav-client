@@ -8,7 +8,7 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v4
       - name: Start ClamAV daemon clamd
-        uses: toblux/start-clamd-github-action@main
+        uses: toblux/start-clamd-github-action@v0.1.0
       - name: Run tests
         run: cargo test --all-features -- --skip oversized
   test_ubuntu:
@@ -17,7 +17,7 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v4
       - name: Start ClamAV daemon clamd
-        uses: toblux/start-clamd-github-action@main
+        uses: toblux/start-clamd-github-action@v0.1.0
       - name: Run tests
         run: cargo test --all-features -- --skip oversized
   test_windows:
@@ -28,6 +28,6 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v4
       - name: Start ClamAV daemon clamd
-        uses: toblux/start-clamd-github-action@main
+        uses: toblux/start-clamd-github-action@v0.1.0
       - name: Run tests
         run: cargo test --all-features -- --skip oversized
