@@ -2,6 +2,15 @@ name: Run tests
 on: [push, pull_request]
 
 jobs:
+  test_macos:
+    runs-on: macos-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+      - name: Start ClamAV daemon clamd
+        uses: toblux/start-clamd-github-action@main
+      - name: Run tests
+        run: cargo test --all-features -- --skip oversized
   test_ubuntu:
     runs-on: ubuntu-latest
     steps:
