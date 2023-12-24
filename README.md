@@ -118,6 +118,17 @@ More examples can be found in the [tests](tests/clamav_client.rs).
 - [API documentation on docs.rs](https://docs.rs/clamav-client/latest/clamav_client/)
 - [clamav-client on crates.io](https://crates.io/crates/clamav-client/)
 
+## Development
+### Testing locally
+
+For the tests to pass, you should start `clamd` as follows:
+
+`clamd -F --config-file=tests/clamav/clamd.conf --datadir=tests/clamav/database/`
+
+and then run `cargo test --all-features` to run all tests for all features.
+
+It doesn't really matter how you start `clamd`, as long as the options from [clamd.conf](tests/clamav/clamd.conf) are the same for your configuration.
+
 ## Contributors
 
 - [Christopher Prohm](https://github.com/chmp)
