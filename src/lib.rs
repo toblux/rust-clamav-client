@@ -2,8 +2,12 @@
 #![deny(missing_docs)]
 
 #[cfg(feature = "tokio")]
-/// Async (Tokio) implementation
+/// Async Tokio implementation
 pub mod tokio;
+
+#[cfg(feature = "async-std")]
+/// async-std implementation
+pub mod async_std;
 
 use std::{
     fs::File,

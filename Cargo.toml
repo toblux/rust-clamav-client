@@ -1,27 +1,30 @@
 [package]
 name = "clamav-client"
-version = "0.3.4"
+version = "0.4.0"
 authors = ["Thorsten Blum <thorsten.blum@toblux.com>"]
 edition = "2021"
 homepage = "https://github.com/toblux/rust-clamav-client"
 repository = "https://github.com/toblux/rust-clamav-client"
-description = "ClamAV client library with optional Tokio support"
+description = "ClamAV client library with optional Tokio and async-std support"
 readme = "README.md"
 license = "MIT"
-keywords = ["clamav", "clamd", "anitvirus", "async", "tokio"]
+keywords = ["clamav", "clamd", "anitvirus", "async", "tokio", "async-std"]
 
 [dependencies]
 tokio = { version = "1.34.0", features = ["fs", "io-util", "net"], optional = true }
 tokio-stream = { version = "0.1.14", optional = true }
+async-std = { version = "1.12.0", optional = true }
 bytes = { version = "1", optional = true }
 
 [dev-dependencies]
 tokio = { version = "1.34.0", features = ["io-std", "macros", "rt"] }
 tokio-util = { version = "0.7.10", features = ["io"] }
+async-std = { version = "1.12.0", features = ["attributes"] }
 
 [features]
 tokio = ["dep:tokio"]
 tokio-stream = ["tokio", "dep:tokio-stream", "dep:bytes"]
+async-std = ["dep:async-std"]
 
 [package.metadata.docs.rs]
-features = ["tokio", "tokio-stream"]
+features = ["tokio", "tokio-stream", "async-std"]
