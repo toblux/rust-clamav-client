@@ -9,6 +9,7 @@ description = "ClamAV client library with optional Tokio and async-std support"
 readme = "README.md"
 license = "MIT"
 keywords = ["clamav", "clamd", "anitvirus", "tokio", "async-std"]
+exclude = ["tests/clamav"]
 
 [dependencies]
 tokio = { version = "1.34.0", default-features = false, features = ["fs", "io-util", "net"], optional = true }
