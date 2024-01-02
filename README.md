@@ -29,6 +29,13 @@ To scan Tokio streams, enable the `tokio-stream` feature instead and add this to
 clamav-client = { version = "0.3.4", features = ["tokio-stream"] }
 ```
 
+Preliminary support for `async-std` is also available by enabling the `async-std` feature:
+
+```toml
+[dependencies]
+clamav-client = { version = "0.3.4", features = ["async-std"] }
+```
+
 ## Usage
 
 ```rust
