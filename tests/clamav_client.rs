@@ -487,13 +487,6 @@ async fn async_tokio_scan_tcp_clean_stream() {
     assert_eq!(clamav_client::clean(&response), Ok(true));
 }
 
-#[async_std::test]
-#[cfg(feature = "async-std")]
-#[ignore = "Find or implement tokio_util::io::ReaderStream for async_std"]
-async fn async_std_scan_tcp_clean_stream() {
-    todo!("Missing test");
-}
-
 #[test]
 fn scan_tcp_oversized_file() {
     let err_msg = format!(
