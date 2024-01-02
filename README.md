@@ -12,28 +12,28 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-clamav-client = "0.4.1"
+clamav-client = "0.4.2"
 ```
 
 To use the `async` functions in `clamav_client::tokio`, add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-clamav-client = { version = "0.4.1", features = ["tokio"] }
+clamav-client = { version = "0.4.2", features = ["tokio"] }
 ```
 
 To scan Tokio streams, enable the `tokio-stream` feature instead and add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-clamav-client = { version = "0.4.1", features = ["tokio-stream"] }
+clamav-client = { version = "0.4.2", features = ["tokio-stream"] }
 ```
 
 Preliminary support for `async-std` is also available by enabling the `async-std` feature:
 
 ```toml
 [dependencies]
-clamav-client = { version = "0.4.1", features = ["async-std"] }
+clamav-client = { version = "0.4.2", features = ["async-std"] }
 ```
 
 ## Usage
@@ -132,7 +132,7 @@ For the tests to pass, you should start `clamd` as follows:
 
 `clamd -F --config-file=tests/clamav/clamd.conf --datadir=tests/clamav/database/`
 
-and then run `cargo test --features=tokio-stream && cargo test --features=async-std` to cover all tests.
+and then run `cargo test --all-features` to cover all tests.
 
 It doesn't really matter how you start `clamd`, as long as the options from [clamd.conf](tests/clamav/clamd.conf) are the same for your configuration.
 
