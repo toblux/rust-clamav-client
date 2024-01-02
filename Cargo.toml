@@ -19,7 +19,7 @@ bytes = { version = "1", optional = true }
 [dev-dependencies]
 tokio = { version = "1.34.0", features = ["io-std", "macros", "rt"] }
 tokio-util = { version = "0.7.10", features = ["io"] }
-async-std = { version = "1.12.0", features = ["attributes"] }
+async-std = { version = "1.12.0", default-features = false, features = ["attributes"] }
 
 [features]
 tokio = ["dep:tokio"]
