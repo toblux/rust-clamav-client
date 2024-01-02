@@ -1,6 +1,9 @@
 #![doc = include_str!("../README.md")]
 #![deny(missing_docs)]
 
+#[cfg(all(feature = "tokio", feature = "async-std"))]
+compile_error!("The features tokio and async-std cannot be enabled at the same time");
+
 #[cfg(feature = "tokio")]
 /// Async Tokio implementation
 pub mod tokio;
