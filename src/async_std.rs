@@ -78,7 +78,7 @@ pub async fn ping_socket<P: AsRef<Path>>(socket_path: P) -> IoResult {
 ///
 /// # Arguments
 ///
-/// * `path`: Path to the file to be scanned
+/// * `file_path`: Path to the file to be scanned
 /// * `socket_path`: Path to the Unix socket for the ClamAV server
 /// * `chunk_size`: An optional chunk size for reading data. If `None`, a default chunk size is used
 ///
@@ -88,13 +88,13 @@ pub async fn ping_socket<P: AsRef<Path>>(socket_path: P) -> IoResult {
 ///
 #[cfg(unix)]
 pub async fn scan_file_socket<P: AsRef<Path>>(
-    path: P,
+    file_path: P,
     socket_path: P,
     chunk_size: Option<usize>,
 ) -> IoResult {
     use async_std::os::unix::net::UnixStream;
 
-    let file = File::open(path).await?;
+    let file = File::open(file_path).await?;
     let stream = UnixStream::connect(socket_path).await?;
     scan(file, chunk_size, stream).await
 }
@@ -156,7 +156,7 @@ pub async fn ping_tcp<A: ToSocketAddrs>(host_address: A) -> IoResult {
 ///
 /// # Arguments
 ///
-/// * `path`: The path to the file to be scanned
+/// * `file_path`: The path to the file to be scanned
 /// * `host_address`: The address (host and port) of the ClamAV server
 /// * `chunk_size`: An optional chunk size for reading data. If `None`, a default chunk size is used
 ///
@@ -165,11 +165,11 @@ pub async fn ping_tcp<A: ToSocketAddrs>(host_address: A) -> IoResult {
 /// An `IoResult` containing the server's response as a vector of bytes
 ///
 pub async fn scan_file_tcp<P: AsRef<Path>, A: ToSocketAddrs>(
-    path: P,
+    file_path: P,
     host_address: A,
     chunk_size: Option<usize>,
 ) -> IoResult {
-    let file = File::open(path).await?;
+    let file = File::open(file_path).await?;
     let stream = TcpStream::connect(host_address).await?;
     scan(file, chunk_size, stream).await
 }
