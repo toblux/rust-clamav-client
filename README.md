@@ -132,7 +132,7 @@ For the tests to pass, you should start `clamd` as follows:
 
 `clamd -F --config-file=tests/clamav/clamd.conf --datadir=tests/clamav/database/`
 
-and then run `cargo test --all-features` to run all tests for all features.
+and then run `cargo test --features=tokio-stream && cargo test --features=async-std` to cover all tests.
 
 It doesn't really matter how you start `clamd`, as long as the options from [clamd.conf](tests/clamav/clamd.conf) are the same for your configuration.
 
