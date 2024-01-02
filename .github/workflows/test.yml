@@ -10,7 +10,9 @@ jobs:
       - name: Start ClamAV daemon clamd
         uses: toblux/start-clamd-github-action@v0.1
       - name: Run tests
-        run: cargo test --all-features -- --skip oversized
+        run: |
+          cargo test --features=tokio-stream -- --skip oversized
+          cargo test --features=async-std -- --skip oversized
   test_ubuntu:
     runs-on: ubuntu-latest
     steps:
@@ -19,7 +21,9 @@ jobs:
       - name: Start ClamAV daemon clamd
         uses: toblux/start-clamd-github-action@v0.1
       - name: Run tests
-        run: cargo test --all-features -- --skip oversized
+        run: |
+          cargo test --features=tokio-stream -- --skip oversized
+          cargo test --features=async-std -- --skip oversized
   test_windows:
     env:
       CLAMAV_WIN_VERSION: clamav-1.0.4.win.x64
@@ -30,4 +34,6 @@ jobs:
       - name: Start ClamAV daemon clamd
         uses: toblux/start-clamd-github-action@v0.1
       - name: Run tests
-        run: cargo test --all-features -- --skip oversized
+        run: |
+          cargo test --features=tokio-stream -- --skip oversized
+          cargo test --features=async-std -- --skip oversized
