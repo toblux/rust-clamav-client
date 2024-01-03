@@ -53,7 +53,7 @@ if !clamd_available {
 }
 
 // Scan file for viruses
-let file_path = "tests/eicar.txt";
+let file_path = "tests/data/eicar.txt";
 let scan_file_response = clamav_client::scan_file_tcp(file_path, clamd_host_address, None).unwrap();
 let file_clean = clamav_client::clean(&scan_file_response).unwrap();
 if file_clean {
@@ -91,7 +91,7 @@ async fn tokio_example() {
         return;
     }
 
-    let file_path = "tests/eicar.txt";
+    let file_path = "tests/data/eicar.txt";
     let buffer = br#"X5O!P%@AP[4\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*"#;
 
     // Concurrently scan a file and a data buffer for viruses
@@ -130,11 +130,11 @@ More examples can be found in the [tests](tests/clamav_client.rs).
 
 For the tests to pass, you should start `clamd` as follows:
 
-`clamd -F --config-file=tests/clamav/clamd.conf --datadir=tests/clamav/database/`
+`clamd -F --config-file=clamd/clamd.conf --datadir=clamd/database`
 
 and then run `cargo test --all-features` to cover all tests.
 
-It doesn't really matter how you start `clamd`, as long as the options from [clamd.conf](tests/clamav/clamd.conf) are the same for your configuration.
+It doesn't really matter how you start `clamd`, as long as the options from [clamd.conf](clamd/clamd.conf) are the same for your configuration.
 
 ## Contributors
 

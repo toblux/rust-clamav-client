@@ -3,16 +3,18 @@ use clamav_client;
 #[cfg(unix)]
 const TEST_SOCKET_PATH: &str = "/tmp/clamd.socket";
 const TEST_HOST_ADDRESS: &str = "localhost:3310";
-const EICAR_TEST_FILE_PATH: &str = "tests/eicar.txt";
+const EICAR_TEST_FILE_PATH: &str = "tests/data/eicar.txt";
 const CLEAN_TEST_FILE_PATH: &str = "README.md";
 
 const PONG_RESPONSE: &[u8] = b"PONG\0";
 const EICAR_FILE_SIGNATURE_FOUND_RESPONSE: &[u8] = b"stream: Eicar-Signature FOUND\0";
 const OK_RESPONSE: &[u8] = b"stream: OK\0";
 
-// `StreamMaxLength` is limited to 1 MB in `clamd.conf` - this binary test file
-// is exactly 1 byte larger than allowed to test the "size limit exceeded" error
-const OVERSIZED_TEST_FILE_PATH: &str = "tests/stream-max-length-test-file.bin";
+// `StreamMaxLength` is limited to 1 MB (1_000_000 bytes) in `clamd.conf` - this
+// binary test file is 1 byte larger than allowed (1_000_001 bytes in total) to
+// test ClamAV's "size limit exceeded" error. The file was created using the
+// truncate utility: `truncate -s 1000001 filename`
+const OVERSIZED_TEST_FILE_PATH: &str = "tests/data/stream-max-length-test-file.bin";
 const SIZE_LIMIT_EXCEEDED_ERROR_RESPONSE: &[u8] = b"INSTREAM size limit exceeded. ERROR\0";
 
 #[test]
@@ -102,7 +104,7 @@ fn scan_socket_infected_buffer() {
         "Could not scan EICAR test string via socket at {}",
         TEST_SOCKET_PATH
     );
-    let buffer = include_bytes!("eicar.txt");
+    let buffer = include_bytes!("data/eicar.txt");
     let response =
         clamav_client::scan_buffer_socket(buffer, TEST_SOCKET_PATH, None).expect(&err_msg);
     assert_eq!(&response, EICAR_FILE_SIGNATURE_FOUND_RESPONSE);
@@ -116,7 +118,7 @@ async fn async_tokio_scan_socket_infected_buffer() {
         "Could not scan EICAR test string via socket at {}",
         TEST_SOCKET_PATH
     );
-    let buffer = include_bytes!("eicar.txt");
+    let buffer = include_bytes!("data/eicar.txt");
     let response = clamav_client::tokio::scan_buffer_socket(buffer, TEST_SOCKET_PATH, None)
         .await
         .expect(&err_msg);
@@ -131,7 +133,7 @@ async fn async_std_scan_socket_infected_buffer() {
         "Could not scan EICAR test string via socket at {}",
         TEST_SOCKET_PATH
     );
-    let buffer = include_bytes!("eicar.txt");
+    let buffer = include_bytes!("data/eicar.txt");
     let response = clamav_client::async_std::scan_buffer_socket(buffer, TEST_SOCKET_PATH, None)
         .await
         .expect(&err_msg);
@@ -367,7 +369,7 @@ fn scan_tcp_infected_buffer() {
         "Could not scan EICAR test string via TCP at {}",
         TEST_HOST_ADDRESS
     );
-    let buffer = include_bytes!("eicar.txt");
+    let buffer = include_bytes!("data/eicar.txt");
     let response = clamav_client::scan_buffer_tcp(buffer, TEST_HOST_ADDRESS, None).expect(&err_msg);
     assert_eq!(&response, EICAR_FILE_SIGNATURE_FOUND_RESPONSE);
     assert_eq!(clamav_client::clean(&response), Ok(false));
@@ -380,7 +382,7 @@ async fn async_tokio_scan_tcp_infected_buffer() {
         "Could not scan EICAR test string via TCP at {}",
         TEST_HOST_ADDRESS
     );
-    let buffer = include_bytes!("eicar.txt");
+    let buffer = include_bytes!("data/eicar.txt");
     let response = clamav_client::tokio::scan_buffer_tcp(buffer, TEST_HOST_ADDRESS, None)
         .await
         .expect(&err_msg);
@@ -395,7 +397,7 @@ async fn async_std_scan_tcp_infected_buffer() {
         "Could not scan EICAR test string via TCP at {}",
         TEST_HOST_ADDRESS
     );
-    let buffer = include_bytes!("eicar.txt");
+    let buffer = include_bytes!("data/eicar.txt");
     let response = clamav_client::async_std::scan_buffer_tcp(buffer, TEST_HOST_ADDRESS, None)
         .await
         .expect(&err_msg);
