@@ -2,7 +2,7 @@ name: Run tests
 on: [push, pull_request]
 
 jobs:
-  test_all:
+  test:
     strategy:
       matrix:
         os: [macos-latest, ubuntu-latest, windows-latest]
