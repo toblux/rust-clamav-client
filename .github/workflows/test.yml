@@ -12,5 +12,7 @@ jobs:
         uses: actions/checkout@v4
       - name: Start ClamAV daemon clamd
         uses: toblux/start-clamd-github-action@v0.1
+        with:
+          stream_max_length: 1000000
       - name: Run tests
         run: cargo test --all-features -- --skip oversized
