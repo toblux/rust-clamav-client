@@ -1,5 +1,3 @@
-use clamav_client;
-
 #[cfg(unix)]
 const TEST_SOCKET_PATH: &str = "/tmp/clamd.socket";
 const TEST_HOST_ADDRESS: &str = "localhost:3310";
@@ -288,10 +286,11 @@ mod tokio_tests {
 mod tokio_stream_tests {
 
     use super::*;
+    use std::path::Path;
     use tokio::fs::File;
     use tokio_util::io::ReaderStream;
 
-    async fn stream_from_file<P: AsRef<std::path::Path>>(path: P) -> ReaderStream<File> {
+    async fn stream_from_file<P: AsRef<Path>>(path: P) -> ReaderStream<File> {
         let path_str = path.as_ref().to_str().expect("Invalid path");
         let err_msg = format!("Could not read test file {}", path_str);
         let file = File::open(path).await.expect(&err_msg);

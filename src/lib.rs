@@ -6,7 +6,7 @@
 pub mod tokio;
 
 #[cfg(feature = "async-std")]
-/// async-std implementation
+/// async_std implementation
 pub mod async_std;
 
 use std::{
