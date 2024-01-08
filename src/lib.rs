@@ -14,7 +14,6 @@ use std::{
     io::{Error, Read, Write},
     net::{TcpStream, ToSocketAddrs},
     path::Path,
-    result::Result,
     str::Utf8Error,
 };
 
