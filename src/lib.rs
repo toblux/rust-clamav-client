@@ -17,10 +17,10 @@ use std::{
     str::Utf8Error,
 };
 
-/// TODO: Add comment
+/// Custom result type
 pub type IoResult = Result<Vec<u8>, Error>;
 
-/// TODO: Add comment
+/// Custom result type
 pub type Utf8Result = Result<bool, Utf8Error>;
 
 /// Default chunk size in bytes for reading data during scanning
@@ -100,11 +100,11 @@ pub fn ping_socket<P: AsRef<Path>>(socket_path: P) -> IoResult {
 ///
 /// * `file_path`: Path to the file to be scanned
 /// * `socket_path`: Path to the Unix socket for the ClamAV server
-/// * `chunk_size`: An optional chunk size for reading data. If `None`, a default chunk size is used
+/// * `chunk_size`: An optional chunk size for reading data. If [`None`], a default chunk size is used
 ///
 /// # Returns
 ///
-/// An `IoResult` containing the server's response as a vector of bytes
+/// An [`IoResult`] containing the server's response as a vector of bytes
 ///
 #[cfg(unix)]
 pub fn scan_file_socket<P: AsRef<Path>>(
@@ -128,11 +128,11 @@ pub fn scan_file_socket<P: AsRef<Path>>(
 ///
 /// * `buffer`: The data to be scanned
 /// * `socket_path`: The path to the Unix socket for the ClamAV server
-/// * `chunk_size`: An optional chunk size for reading data. If `None`, a default chunk size is used
+/// * `chunk_size`: An optional chunk size for reading data. If [`None`], a default chunk size is used
 ///
 /// # Returns
 ///
-/// An `IoResult` containing the server's response as a vector of bytes
+/// An [`IoResult`] containing the server's response as a vector of bytes
 ///
 #[cfg(unix)]
 pub fn scan_buffer_socket<P: AsRef<Path>>(
@@ -175,11 +175,11 @@ pub fn ping_tcp<A: ToSocketAddrs>(host_address: A) -> IoResult {
 ///
 /// * `file_path`: The path to the file to be scanned
 /// * `host_address`: The address (host and port) of the ClamAV server
-/// * `chunk_size`: An optional chunk size for reading data. If `None`, a default chunk size is used
+/// * `chunk_size`: An optional chunk size for reading data. If [`None`], a default chunk size is used
 ///
 /// # Returns
 ///
-/// An `IoResult` containing the server's response as a vector of bytes
+/// An [`IoResult`] containing the server's response as a vector of bytes
 ///
 pub fn scan_file_tcp<P: AsRef<Path>, A: ToSocketAddrs>(
     file_path: P,
@@ -200,11 +200,11 @@ pub fn scan_file_tcp<P: AsRef<Path>, A: ToSocketAddrs>(
 ///
 /// * `buffer`: The data to be scanned
 /// * `host_address`: The address (host and port) of the ClamAV server
-/// * `chunk_size`: An optional chunk size for reading data. If `None`, a default chunk size is used
+/// * `chunk_size`: An optional chunk size for reading data. If [`None`], a default chunk size is used
 ///
 /// # Returns
 ///
-/// An `IoResult` containing the server's response as a vector of bytes
+/// An [`IoResult`] containing the server's response as a vector of bytes
 ///
 pub fn scan_buffer_tcp<A: ToSocketAddrs>(
     buffer: &[u8],
@@ -225,6 +225,10 @@ pub fn scan_buffer_tcp<A: ToSocketAddrs>(
 /// let data_clean = clamav_client::clean(&response).unwrap();
 /// # assert_eq!(data_clean, true);
 /// ```
+///
+/// # Returns
+///
+/// An [`Utf8Result`] containing the scan result as [`bool`]
 ///
 pub fn clean(response: &[u8]) -> Utf8Result {
     let response = std::str::from_utf8(response)?;

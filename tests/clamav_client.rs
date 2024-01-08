@@ -294,7 +294,7 @@ mod tokio_stream_tests {
         let path_str = path.as_ref().to_str().expect("Invalid path");
         let err_msg = format!("Could not read test file {}", path_str);
         let file = File::open(path).await.expect(&err_msg);
-        ReaderStream::new(file)
+        ReaderStream::with_capacity(file, 16)
     }
 
     #[tokio::test]
@@ -542,6 +542,114 @@ mod async_std_tests {
         )
         .await
         .expect(&err_msg);
+        assert_eq!(&response, SIZE_LIMIT_EXCEEDED_ERROR_RESPONSE);
+        assert_eq!(clamav_client::clean(&response), Ok(false));
+    }
+}
+
+#[cfg(feature = "async-std")]
+mod async_std_stream_tests {
+
+    use super::*;
+    use async_std::{fs::File, path::Path};
+    use clamav_client::async_std::io::util::ReaderStream;
+
+    async fn stream_from_file<P: AsRef<Path>>(path: P) -> ReaderStream<File> {
+        let path_str = path.as_ref().to_str().expect("Invalid path");
+        let err_msg = format!("Could not read test file {}", path_str);
+        let file = File::open(path).await.expect(&err_msg);
+        ReaderStream::with_capacity(file, 16)
+    }
+
+    #[async_std::test]
+    #[cfg(unix)]
+    async fn async_std_scan_socket_infected_stream() {
+        let stream = stream_from_file(EICAR_TEST_FILE_PATH).await;
+
+        let err_msg = format!(
+            "Could not scan test file {} via socket at {}",
+            EICAR_TEST_FILE_PATH, TEST_SOCKET_PATH
+        );
+        let response = clamav_client::async_std::scan_stream_socket(stream, TEST_SOCKET_PATH, None)
+            .await
+            .expect(&err_msg);
+        assert_eq!(&response, EICAR_FILE_SIGNATURE_FOUND_RESPONSE);
+        assert_eq!(clamav_client::clean(&response), Ok(false));
+    }
+
+    #[async_std::test]
+    #[cfg(unix)]
+    async fn async_std_scan_socket_clean_stream() {
+        let stream = stream_from_file(CLEAN_TEST_FILE_PATH).await;
+
+        let err_msg = format!(
+            "Could not scan test file {} via socket at {}",
+            CLEAN_TEST_FILE_PATH, TEST_SOCKET_PATH
+        );
+        let response = clamav_client::async_std::scan_stream_socket(stream, TEST_SOCKET_PATH, None)
+            .await
+            .expect(&err_msg);
+        assert_eq!(&response, OK_RESPONSE);
+        assert_eq!(clamav_client::clean(&response), Ok(true));
+    }
+
+    #[async_std::test]
+    #[cfg(unix)]
+    async fn async_std_scan_socket_oversized_stream() {
+        let stream = stream_from_file(OVERSIZED_TEST_FILE_PATH).await;
+
+        let err_msg = format!(
+            "Could not scan test file {} via socket at {}",
+            OVERSIZED_TEST_FILE_PATH, TEST_SOCKET_PATH
+        );
+        let response = clamav_client::async_std::scan_stream_socket(stream, TEST_SOCKET_PATH, None)
+            .await
+            .expect(&err_msg);
+        assert_eq!(&response, SIZE_LIMIT_EXCEEDED_ERROR_RESPONSE);
+        assert_eq!(clamav_client::clean(&response), Ok(false));
+    }
+
+    #[async_std::test]
+    async fn async_std_scan_tcp_infected_stream() {
+        let stream = stream_from_file(EICAR_TEST_FILE_PATH).await;
+
+        let err_msg = format!(
+            "Could not scan test file {} via TCP at {}",
+            EICAR_TEST_FILE_PATH, TEST_HOST_ADDRESS
+        );
+        let response = clamav_client::async_std::scan_stream_tcp(stream, TEST_HOST_ADDRESS, None)
+            .await
+            .expect(&err_msg);
+        assert_eq!(&response, EICAR_FILE_SIGNATURE_FOUND_RESPONSE);
+        assert_eq!(clamav_client::clean(&response), Ok(false));
+    }
+
+    #[async_std::test]
+    async fn async_std_scan_tcp_clean_stream() {
+        let stream = stream_from_file(CLEAN_TEST_FILE_PATH).await;
+
+        let err_msg = format!(
+            "Could not scan test file {} via TCP at {}",
+            CLEAN_TEST_FILE_PATH, TEST_HOST_ADDRESS
+        );
+        let response = clamav_client::async_std::scan_stream_tcp(stream, TEST_HOST_ADDRESS, None)
+            .await
+            .expect(&err_msg);
+        assert_eq!(&response, OK_RESPONSE);
+        assert_eq!(clamav_client::clean(&response), Ok(true));
+    }
+
+    #[async_std::test]
+    async fn async_std_scan_tcp_oversized_stream() {
+        let stream = stream_from_file(OVERSIZED_TEST_FILE_PATH).await;
+
+        let err_msg = format!(
+            "Could not scan test file {} via TCP at {}",
+            OVERSIZED_TEST_FILE_PATH, TEST_HOST_ADDRESS
+        );
+        let response = clamav_client::async_std::scan_stream_tcp(stream, TEST_HOST_ADDRESS, None)
+            .await
+            .expect(&err_msg);
         assert_eq!(&response, SIZE_LIMIT_EXCEEDED_ERROR_RESPONSE);
         assert_eq!(clamav_client::clean(&response), Ok(false));
     }

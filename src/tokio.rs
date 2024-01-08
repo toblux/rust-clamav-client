@@ -117,11 +117,11 @@ pub async fn ping_socket<P: AsRef<Path>>(socket_path: P) -> IoResult {
 ///
 /// * `file_path`: Path to the file to be scanned
 /// * `socket_path`: Path to the Unix socket for the ClamAV server
-/// * `chunk_size`: An optional chunk size for reading data. If `None`, a default chunk size is used
+/// * `chunk_size`: An optional chunk size for reading data. If [`None`], a default chunk size is used
 ///
 /// # Returns
 ///
-/// An `IoResult` containing the server's response as a vector of bytes
+/// An [`IoResult`] containing the server's response as a vector of bytes
 ///
 #[cfg(unix)]
 pub async fn scan_file_socket<P: AsRef<Path>>(
@@ -145,11 +145,11 @@ pub async fn scan_file_socket<P: AsRef<Path>>(
 ///
 /// * `buffer`: The data to be scanned
 /// * `socket_path`: The path to the Unix socket for the ClamAV server
-/// * `chunk_size`: An optional chunk size for reading data. If `None`, a default chunk size is used
+/// * `chunk_size`: An optional chunk size for reading data. If [`None`], a default chunk size is used
 ///
 /// # Returns
 ///
-/// An `IoResult` containing the server's response as a vector of bytes
+/// An [`IoResult`] containing the server's response as a vector of bytes
 ///
 #[cfg(unix)]
 pub async fn scan_buffer_socket<P: AsRef<Path>>(
@@ -172,11 +172,11 @@ pub async fn scan_buffer_socket<P: AsRef<Path>>(
 ///
 /// * `input_stream`: The stream to be scanned
 /// * `socket_path`: The path to the Unix socket for the ClamAV server
-/// * `chunk_size`: An optional chunk size for reading data. If `None`, a default chunk size is used
+/// * `chunk_size`: An optional chunk size for reading data. If [`None`], a default chunk size is used
 ///
 /// # Returns
 ///
-/// An `IoResult` containing the server's response as a vector of bytes
+/// An [`IoResult`] containing the server's response as a vector of bytes
 ///
 #[cfg(all(unix, feature = "tokio-stream"))]
 pub async fn scan_stream_socket<
@@ -225,11 +225,11 @@ pub async fn ping_tcp<A: ToSocketAddrs>(host_address: A) -> IoResult {
 ///
 /// * `file_path`: The path to the file to be scanned
 /// * `host_address`: The address (host and port) of the ClamAV server
-/// * `chunk_size`: An optional chunk size for reading data. If `None`, a default chunk size is used
+/// * `chunk_size`: An optional chunk size for reading data. If [`None`], a default chunk size is used
 ///
 /// # Returns
 ///
-/// An `IoResult` containing the server's response as a vector of bytes
+/// An [`IoResult`] containing the server's response as a vector of bytes
 ///
 pub async fn scan_file_tcp<P: AsRef<Path>, A: ToSocketAddrs>(
     file_path: P,
@@ -250,11 +250,11 @@ pub async fn scan_file_tcp<P: AsRef<Path>, A: ToSocketAddrs>(
 ///
 /// * `buffer`: The data to be scanned
 /// * `host_address`: The address (host and port) of the ClamAV server
-/// * `chunk_size`: An optional chunk size for reading data. If `None`, a default chunk size is used
+/// * `chunk_size`: An optional chunk size for reading data. If [`None`], a default chunk size is used
 ///
 /// # Returns
 ///
-/// An `IoResult` containing the server's response as a vector of bytes
+/// An [`IoResult`] containing the server's response as a vector of bytes
 ///
 pub async fn scan_buffer_tcp<A: ToSocketAddrs>(
     buffer: &[u8],
@@ -274,11 +274,11 @@ pub async fn scan_buffer_tcp<A: ToSocketAddrs>(
 ///
 /// * `input_stream`: The stream to be scanned
 /// * `host_address`: The address (host and port) of the ClamAV server
-/// * `chunk_size`: An optional chunk size for reading data. If `None`, a default chunk size is used
+/// * `chunk_size`: An optional chunk size for reading data. If [`None`], a default chunk size is used
 ///
 /// # Returns
 ///
-/// An `IoResult` containing the server's response as a vector of bytes
+/// An [`IoResult`] containing the server's response as a vector of bytes
 ///
 #[cfg(feature = "tokio-stream")]
 pub async fn scan_stream_tcp<
