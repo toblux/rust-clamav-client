@@ -4,6 +4,8 @@ A simple ClamAV client to send files, in-memory data, and byte streams to `clamd
 
 Please note: The functions `ping_socket`, `scan_file_socket`, `scan_buffer_socket`, and `scan_stream_socket` are only available on Unix platforms.
 
+Check out the [examples](#examples) below, the [integration tests](tests/clamav_client.rs), or the [documentation on docs.rs](https://docs.rs/clamav-client/latest/clamav_client/) for more information on how to use this library.
+
 ![Workflow status](https://github.com/toblux/rust-clamav-client/actions/workflows/test.yml/badge.svg)
 
 ## Installation
@@ -36,7 +38,9 @@ Support for `async-std` is also available by enabling the `async-std` feature:
 clamav-client = { version = "0.4.3", features = ["async-std"] }
 ```
 
-## Usage
+## Examples
+
+### Usage
 
 ```rust
 let clamd_host_address = "localhost:3310";
@@ -73,7 +77,7 @@ if data_clean {
 }
 ```
 
-## Usage - Async with Tokio
+### Usage - Async with Tokio
 
 ```rust
 #[cfg(feature = "tokio")]
