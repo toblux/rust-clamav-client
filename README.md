@@ -1,6 +1,6 @@
 # Rust ClamAV Client
 
-A simple ClamAV client to send files, in-memory data, and Tokio streams to `clamd` for antivirus scanning.
+A simple ClamAV client to send files, in-memory data, and byte streams to `clamd` for antivirus scanning. Supports Tokio and async-std.
 
 Please note: The functions `ping_socket`, `scan_file_socket`, `scan_buffer_socket`, and `scan_stream_socket` are only available on Unix platforms.
 

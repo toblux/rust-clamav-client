@@ -8,7 +8,7 @@ repository = "https://github.com/toblux/rust-clamav-client"
 description = "ClamAV client library with optional Tokio and async-std support"
 readme = "README.md"
 license = "MIT"
-keywords = ["clamav", "clamd", "anitvirus", "async"]
+keywords = ["clamav", "clamd", "anitvirus", "async", "tokio"]
 exclude = ["clamd"]
 
 [dependencies]

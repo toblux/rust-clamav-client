@@ -2,11 +2,11 @@
 #![deny(missing_docs)]
 
 #[cfg(feature = "tokio")]
-/// Async Tokio implementation
+/// Use the feature flag "tokio" or "tokio-stream" to enable this module
 pub mod tokio;
 
 #[cfg(feature = "async-std")]
-/// async_std implementation
+/// Use the feature flag "async-std" to enable this module
 pub mod async_std;
 
 use std::{
