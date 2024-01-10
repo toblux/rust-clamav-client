@@ -55,6 +55,7 @@ if !clamd_available {
     println!("Cannot ping clamd at {}", clamd_host_address);
     return;
 }
+assert!(clamd_available);
 
 // Scan file for viruses
 let file_path = "tests/data/eicar.txt";
@@ -65,6 +66,7 @@ if file_clean {
 } else {
     println!("The file {} is infected!", file_path);
 }
+assert!(!file_clean);
 
 // Scan in-memory data for viruses
 let buffer = br#"X5O!P%@AP[4\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*"#;
@@ -75,13 +77,14 @@ if data_clean {
 } else {
     println!("The data is infected!");
 }
+assert!(!data_clean);
 ```
 
 ### Usage - Async with Tokio
 
 ```rust
 #[cfg(feature = "tokio")]
-async fn tokio_example() {
+tokio::runtime::Builder::new_current_thread().enable_all().build().unwrap().block_on(async {
     let clamd_host_address = "localhost:3310";
 
     // Ping clamd asynchronously and await the result
@@ -94,6 +97,7 @@ async fn tokio_example() {
         println!("Cannot ping clamd at {}", clamd_host_address);
         return;
     }
+    assert!(clamd_available);
 
     let file_path = "tests/data/eicar.txt";
     let buffer = br#"X5O!P%@AP[4\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*"#;
@@ -111,6 +115,7 @@ async fn tokio_example() {
     } else {
         println!("The file {} is infected!", file_path);
     }
+    assert!(!file_clean);
 
     let scan_buffer_response = scan_buffer_result.unwrap();
     let data_clean = clamav_client::clean(&scan_buffer_response).unwrap();
@@ -119,7 +124,8 @@ async fn tokio_example() {
     } else {
         println!("The data is infected!");
     }
-}
+    assert!(!data_clean);
+})
 ```
 
 More examples can be found in the [tests](tests/clamav_client.rs).
