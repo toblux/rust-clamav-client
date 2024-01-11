@@ -25,7 +25,7 @@ async-std = { version = "1.12.0", default-features = false, features = ["attribu
 [features]
 tokio = ["dep:tokio"]
 tokio-stream = ["tokio", "dep:tokio-stream", "dep:bytes"]
-async-std = ["dep:async-std"]
+async-std = ["dep:async-std", "dep:bytes"]
 
 [package.metadata.docs.rs]
 features = ["tokio", "tokio-stream", "async-std"]
