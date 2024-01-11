@@ -63,7 +63,7 @@ async fn scan_stream<
         .unwrap_or(DEFAULT_CHUNK_SIZE)
         .min(u32::MAX as usize);
 
-    tokio::pin!(input_stream);
+    let mut input_stream = std::pin::pin!(input_stream);
 
     while let Some(bytes) = input_stream.next().await {
         let bytes = bytes?;
