@@ -14,5 +14,10 @@ jobs:
         uses: toblux/start-clamd-github-action@v0.1
         with:
           stream_max_length: 1000000
-      - name: Run tests
+      - name: Run tests with separate features
+        run: |
+          cargo test --features tokio -- --skip oversized
+          cargo test --features tokio-stream -- --skip oversized
+          cargo test --features async-std -- --skip oversized
+      - name: Run tests with all features
         run: cargo test --all-features -- --skip oversized
