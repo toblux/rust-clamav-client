@@ -83,7 +83,7 @@ assert!(!data_clean);
 ### Usage - Async with Tokio
 
 ```rust
-#[cfg(feature = "tokio")]
+#[cfg(feature = "tokio-stream")]
 tokio::runtime::Builder::new_current_thread().enable_all().build().unwrap().block_on(async {
     let clamd_host_address = "localhost:3310";
 
@@ -101,11 +101,14 @@ tokio::runtime::Builder::new_current_thread().enable_all().build().unwrap().bloc
 
     let file_path = "tests/data/eicar.txt";
     let buffer = br#"X5O!P%@AP[4\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*"#;
+    let file = tokio::fs::File::open(file_path).await.unwrap();
+    let stream = tokio_util::io::ReaderStream::new(file);
 
-    // Concurrently scan a file and a data buffer for viruses
-    let (scan_file_result, scan_buffer_result) = tokio::join!(
+    // Concurrently scan a file, a data buffer, and a file stream for viruses
+    let (scan_file_result, scan_buffer_result, scan_stream_result) = tokio::join!(
         clamav_client::tokio::scan_file_tcp(file_path, clamd_host_address, None),
-        clamav_client::tokio::scan_buffer_tcp(buffer, clamd_host_address, None)
+        clamav_client::tokio::scan_buffer_tcp(buffer, clamd_host_address, None),
+        clamav_client::tokio::scan_stream_tcp(stream, clamd_host_address, None)
     );
 
     let scan_file_response = scan_file_result.unwrap();
@@ -122,9 +125,18 @@ tokio::runtime::Builder::new_current_thread().enable_all().build().unwrap().bloc
     if data_clean {
         println!("No virus found");
     } else {
-        println!("The data is infected!");
+        println!("The data buffer is infected!");
     }
     assert!(!data_clean);
+
+    let scan_stream_response = scan_stream_result.unwrap();
+    let stream_clean = clamav_client::clean(&scan_stream_response).unwrap();
+    if stream_clean {
+        println!("No virus found");
+    } else {
+        println!("The file stream is infected!");
+    }
+    assert!(!stream_clean);
 })
 ```
 
