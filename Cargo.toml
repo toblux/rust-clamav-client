@@ -1,8 +1,8 @@
 [package]
 name = "clamav-client"
 version = "0.4.4"
-authors = ["Thorsten Blum <thorsten.blum@toblux.com>"]
 edition = "2021"
+authors = ["Thorsten Blum <thorsten.blum@toblux.com>"]
 homepage = "https://github.com/toblux/rust-clamav-client"
 repository = "https://github.com/toblux/rust-clamav-client"
 description = "ClamAV client library with optional Tokio and async-std support"
