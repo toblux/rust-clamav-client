@@ -93,7 +93,7 @@ async fn scan_stream<
 /// # #[tokio::main(flavor = "current_thread")]
 /// # async fn main() {
 /// let clamd_available = match clamav_client::tokio::ping_socket("/tmp/clamd.socket").await {
-///     Ok(ping_response) => ping_response == b"PONG\0",
+///     Ok(ping_response) => ping_response == clamav_client::PONG,
 ///     Err(_) => false,
 /// };
 /// # assert!(clamd_available);
@@ -204,7 +204,7 @@ pub async fn scan_stream_socket<
 /// # #[tokio::main(flavor = "current_thread")]
 /// # async fn main() {
 /// let clamd_available = match clamav_client::tokio::ping_tcp("localhost:3310").await {
-///     Ok(ping_response) => ping_response == b"PONG\0",
+///     Ok(ping_response) => ping_response == clamav_client::PONG,
 ///     Err(_) => false,
 /// };
 /// # assert!(clamd_available);
