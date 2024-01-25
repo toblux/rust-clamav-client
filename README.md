@@ -4,7 +4,7 @@ A simple ClamAV client to send files, in-memory data, and byte streams to `clamd
 
 Please note: The functions `ping_socket`, `scan_file_socket`, `scan_buffer_socket`, and `scan_stream_socket` are only available on Unix platforms.
 
-Check out the [examples](#examples) below, the [integration tests](tests/clamav_client.rs), or the [API docs](https://docs.rs/clamav-client/latest/clamav_client/) for more information on how to use this library.
+Check out the [examples](#examples) below, the [integration tests](tests/clamav_client.rs), or the [API docs](https://docs.rs/clamav-client) for more information on how to use this library.
 
 ![Workflow status](https://github.com/toblux/rust-clamav-client/actions/workflows/test.yml/badge.svg)
 
@@ -144,7 +144,7 @@ More examples can be found in the [tests](tests/clamav_client.rs).
 
 ## Links
 
-- [API documentation on docs.rs](https://docs.rs/clamav-client/latest/clamav_client/)
+- [API documentation on docs.rs](https://docs.rs/clamav-client)
 - [clamav-client on crates.io](https://crates.io/crates/clamav-client/)
 
 ## Development
