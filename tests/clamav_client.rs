@@ -4,7 +4,6 @@ const TEST_HOST_ADDRESS: &str = "localhost:3310";
 const EICAR_TEST_FILE_PATH: &str = "tests/data/eicar.txt";
 const CLEAN_TEST_FILE_PATH: &str = "README.md";
 
-const PONG_RESPONSE: &[u8] = b"PONG\0";
 const EICAR_FILE_SIGNATURE_FOUND_RESPONSE: &[u8] = b"stream: Eicar-Signature FOUND\0";
 const OK_RESPONSE: &[u8] = b"stream: OK\0";
 
@@ -23,7 +22,7 @@ fn ping_socket() {
         TEST_SOCKET_PATH
     );
     let response = clamav_client::ping_socket(TEST_SOCKET_PATH).expect(&err_msg);
-    assert_eq!(&response, PONG_RESPONSE);
+    assert_eq!(&response, clamav_client::PONG);
 }
 
 #[test]
@@ -84,7 +83,7 @@ fn scan_socket_oversized_file() {
 fn ping_tcp() {
     let err_msg = format!("Could not ping clamd via TCP at {}", TEST_HOST_ADDRESS);
     let response = clamav_client::ping_tcp(TEST_HOST_ADDRESS).expect(&err_msg);
-    assert_eq!(&response, PONG_RESPONSE);
+    assert_eq!(&response, clamav_client::PONG);
 }
 
 #[test]
@@ -150,7 +149,7 @@ mod tokio_tests {
         let response = clamav_client::tokio::ping_socket(TEST_SOCKET_PATH)
             .await
             .expect(&err_msg);
-        assert_eq!(&response, PONG_RESPONSE);
+        assert_eq!(&response, clamav_client::PONG);
     }
 
     #[tokio::test]
@@ -222,7 +221,7 @@ mod tokio_tests {
         let response = clamav_client::tokio::ping_tcp(TEST_HOST_ADDRESS)
             .await
             .expect(&err_msg);
-        assert_eq!(&response, PONG_RESPONSE);
+        assert_eq!(&response, clamav_client::PONG);
     }
 
     #[tokio::test]
@@ -406,7 +405,7 @@ mod async_std_tests {
         let response = clamav_client::async_std::ping_socket(TEST_SOCKET_PATH)
             .await
             .expect(&err_msg);
-        assert_eq!(&response, PONG_RESPONSE);
+        assert_eq!(&response, clamav_client::PONG);
     }
 
     #[async_std::test]
@@ -484,7 +483,7 @@ mod async_std_tests {
         let response = clamav_client::async_std::ping_tcp(TEST_HOST_ADDRESS)
             .await
             .expect(&err_msg);
-        assert_eq!(&response, PONG_RESPONSE);
+        assert_eq!(&response, clamav_client::PONG);
     }
 
     #[async_std::test]
