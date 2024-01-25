@@ -47,7 +47,7 @@ let clamd_host_address = "localhost:3310";
 
 // Ping clamd to make sure the server is available and accepting TCP connections
 let clamd_available = match clamav_client::ping_tcp(clamd_host_address) {
-    Ok(ping_response) => ping_response == b"PONG\0",
+    Ok(ping_response) => ping_response == clamav_client::PONG,
     Err(_) => false,
 };
 
@@ -89,7 +89,7 @@ tokio::runtime::Builder::new_current_thread().enable_all().build().unwrap().bloc
 
     // Ping clamd asynchronously and await the result
     let clamd_available = match clamav_client::tokio::ping_tcp(clamd_host_address).await {
-        Ok(ping_response) => ping_response == b"PONG\0",
+        Ok(ping_response) => ping_response == clamav_client::PONG,
         Err(_) => false,
     };
 

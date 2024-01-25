@@ -28,9 +28,11 @@ const DEFAULT_CHUNK_SIZE: usize = 4096;
 
 /// ClamAV commands
 const PING: &[u8; 6] = b"zPING\0";
-const PONG: &[u8; 5] = b"PONG\0";
 const INSTREAM: &[u8; 10] = b"zINSTREAM\0";
 const END_OF_STREAM: &[u8; 4] = &[0, 0, 0, 0];
+
+/// ClamAV responses
+pub const PONG: &[u8; 5] = b"PONG\0";
 
 fn ping<RW: Read + Write>(mut stream: RW) -> IoResult {
     stream.write_all(PING)?;
@@ -77,7 +79,7 @@ fn scan<R: Read, RW: Read + Write>(
 ///
 /// ```
 /// let clamd_available = match clamav_client::ping_socket("/tmp/clamd.socket") {
-///     Ok(ping_response) => ping_response == b"PONG\0",
+///     Ok(ping_response) => ping_response == clamav_client::PONG,
 ///     Err(_) => false,
 /// };
 /// # assert!(clamd_available);
@@ -155,7 +157,7 @@ pub fn scan_buffer_socket<P: AsRef<Path>>(
 ///
 /// ```
 /// let clamd_available = match clamav_client::ping_tcp("localhost:3310") {
-///     Ok(ping_response) => ping_response == b"PONG\0",
+///     Ok(ping_response) => ping_response == clamav_client::PONG,
 ///     Err(_) => false,
 /// };
 /// # assert!(clamd_available);
