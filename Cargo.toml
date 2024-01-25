@@ -5,6 +5,7 @@ edition = "2021"
 authors = ["Thorsten Blum <thorsten.blum@toblux.com>"]
 homepage = "https://github.com/toblux/rust-clamav-client"
 repository = "https://github.com/toblux/rust-clamav-client"
+documentation = "https://docs.rs/clamav-client"
 description = "ClamAV client library with optional Tokio and async-std support"
 readme = "README.md"
 license = "MIT"
