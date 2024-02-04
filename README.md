@@ -157,10 +157,3 @@ For the tests to pass, you should start `clamd` as follows:
 and then run `cargo test --all-features` to cover all tests.
 
 It doesn't really matter how you start `clamd`, as long as the options from [clamd.conf](clamd/clamd.conf) are the same for your configuration.
-
-## Contributors
-
-- [Christopher Prohm](https://github.com/chmp)
-- [Paul Makles](https://github.com/insertish)
-- [Sean Clarke](https://github.com/SeanEClarke)
-- [Kanji Tanaka](https://github.com/kaicoh)
