@@ -12,6 +12,7 @@ use super::{IoResult, DEFAULT_CHUNK_SIZE, END_OF_STREAM, INSTREAM, PING, PONG};
 
 async fn ping<RW: AsyncRead + AsyncWrite + Unpin>(mut stream: RW) -> IoResult {
     stream.write_all(PING).await?;
+    stream.flush().await?;
 
     let capacity = PONG.len();
     let mut response = Vec::with_capacity(capacity);
@@ -39,6 +40,7 @@ async fn scan<R: AsyncRead + Unpin, RW: AsyncRead + AsyncWrite + Unpin>(
             stream.write_all(&buffer[..len]).await?;
         } else {
             stream.write_all(END_OF_STREAM).await?;
+            stream.flush().await?;
             break;
         }
     }
@@ -76,6 +78,7 @@ async fn scan_stream<
     }
 
     output_stream.write_all(END_OF_STREAM).await?;
+    output_stream.flush().await?;
 
     let mut response = Vec::new();
     output_stream.read_to_end(&mut response).await?;

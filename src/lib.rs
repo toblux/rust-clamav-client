@@ -36,6 +36,7 @@ pub const PONG: &[u8; 5] = b"PONG\0";
 
 fn ping<RW: Read + Write>(mut stream: RW) -> IoResult {
     stream.write_all(PING)?;
+    stream.flush()?;
 
     let capacity = PONG.len();
     let mut response = Vec::with_capacity(capacity);
@@ -61,6 +62,7 @@ fn scan<R: Read, RW: Read + Write>(
             stream.write_all(&buffer[..len])?;
         } else {
             stream.write_all(END_OF_STREAM)?;
+            stream.flush()?;
             break;
         }
     }
