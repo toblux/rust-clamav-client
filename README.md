@@ -80,7 +80,7 @@ if data_clean {
 assert!(!data_clean);
 ```
 
-### Usage - Async with Tokio
+### Usage - Async with `tokio`
 
 ```rust
 #[cfg(feature = "tokio-stream")]
@@ -137,6 +137,39 @@ tokio::runtime::Builder::new_current_thread().enable_all().build().unwrap().bloc
         println!("The file stream is infected!");
     }
     assert!(!stream_clean);
+})
+```
+
+### Usage - Async with `async-std`
+
+```rust
+#[cfg(feature = "async-std")]
+async_std::task::block_on(async {
+    let clamd_host_address = "localhost:3310";
+
+    // Ping clamd asynchronously and await the result
+    let clamd_available = match clamav_client::async_std::ping_tcp(clamd_host_address).await {
+        Ok(ping_response) => ping_response == clamav_client::PONG,
+        Err(_) => false,
+    };
+
+    if !clamd_available {
+        println!("Cannot ping clamd at {}", clamd_host_address);
+        return;
+    }
+    assert!(clamd_available);
+
+    // Scan a file for viruses
+    let file_path = "tests/data/eicar.txt";
+    let scan_file_result = clamav_client::async_std::scan_file_tcp(file_path, clamd_host_address, None).await;
+    let scan_file_response = scan_file_result.unwrap();
+    let file_clean = clamav_client::clean(&scan_file_response).unwrap();
+    if file_clean {
+        println!("No virus found in {}", file_path);
+    } else {
+        println!("The file {} is infected!", file_path);
+    }
+    assert!(!file_clean);
 })
 ```
 
