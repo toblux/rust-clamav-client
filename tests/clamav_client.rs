@@ -27,6 +27,17 @@ fn ping_socket() {
 
 #[test]
 #[cfg(unix)]
+fn get_clamav_version_socket() {
+    let err_msg = format!(
+        "Could not get ClamAV version via Unix socket at {}",
+        TEST_SOCKET_PATH
+    );
+    let response = clamav_client::get_clamav_version_socket(TEST_SOCKET_PATH).expect(&err_msg);
+    assert!(&response.starts_with(b"ClamAV"));
+}
+
+#[test]
+#[cfg(unix)]
 fn scan_socket_infected_file() {
     let err_msg = format!(
         "Could not scan test file {} via socket at {}",
@@ -84,6 +95,16 @@ fn ping_tcp() {
     let err_msg = format!("Could not ping clamd via TCP at {}", TEST_HOST_ADDRESS);
     let response = clamav_client::ping_tcp(TEST_HOST_ADDRESS).expect(&err_msg);
     assert_eq!(&response, clamav_client::PONG);
+}
+
+#[test]
+fn get_clamav_version_tcp() {
+    let err_msg = format!(
+        "Could not get ClamAV version via TCP at {}",
+        TEST_HOST_ADDRESS
+    );
+    let response = clamav_client::get_clamav_version_tcp(TEST_HOST_ADDRESS).expect(&err_msg);
+    assert!(&response.starts_with(b"ClamAV"));
 }
 
 #[test]

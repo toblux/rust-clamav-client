@@ -29,20 +29,36 @@ const DEFAULT_CHUNK_SIZE: usize = 4096;
 
 /// ClamAV commands
 const PING: &[u8; 6] = b"zPING\0";
+const VERSION: &[u8; 9] = b"zVERSION\0";
 const INSTREAM: &[u8; 10] = b"zINSTREAM\0";
 const END_OF_STREAM: &[u8; 4] = &[0, 0, 0, 0];
 
 /// ClamAV responses
 pub const PONG: &[u8; 5] = b"PONG\0";
 
-fn ping<RW: Read + Write>(mut stream: RW) -> IoResult {
-    stream.write_all(PING)?;
+fn send_command<RW: Read + Write>(
+    mut stream: RW,
+    command: &[u8],
+    expected_response_length: Option<usize>,
+) -> IoResult {
+    stream.write_all(command)?;
     stream.flush()?;
 
-    let capacity = PONG.len();
-    let mut response = Vec::with_capacity(capacity);
+    let mut response = match expected_response_length {
+        Some(len) => Vec::with_capacity(len),
+        None => Vec::new(),
+    };
+
     stream.read_to_end(&mut response)?;
     Ok(response)
+}
+
+fn ping<RW: Read + Write>(stream: RW) -> IoResult {
+    send_command(stream, PING, Some(PONG.len()))
+}
+
+fn get_clamav_version<RW: Read + Write>(stream: RW) -> IoResult {
+    send_command(stream, VERSION, None)
 }
 
 fn scan<R: Read, RW: Read + Write>(
@@ -94,6 +110,15 @@ pub fn ping_socket<P: AsRef<Path>>(socket_path: P) -> IoResult {
 
     let stream = UnixStream::connect(socket_path)?;
     ping(stream)
+}
+
+/// TODO
+#[cfg(unix)]
+pub fn get_clamav_version_socket<P: AsRef<Path>>(socket_path: P) -> IoResult {
+    use std::os::unix::net::UnixStream;
+
+    let stream = UnixStream::connect(socket_path)?;
+    get_clamav_version(stream)
 }
 
 /// Scans a file for viruses using a Unix socket connection
@@ -169,6 +194,12 @@ pub fn scan_buffer_socket<P: AsRef<Path>>(
 pub fn ping_tcp<A: ToSocketAddrs>(host_address: A) -> IoResult {
     let stream = TcpStream::connect(host_address)?;
     ping(stream)
+}
+
+/// TODO
+pub fn get_clamav_version_tcp<A: ToSocketAddrs>(host_address: A) -> IoResult {
+    let stream = TcpStream::connect(host_address)?;
+    get_clamav_version(stream)
 }
 
 /// Scans a file for viruses using a TCP connection
