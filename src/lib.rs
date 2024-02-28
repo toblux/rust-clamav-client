@@ -14,6 +14,7 @@ use std::{
     io::{Error, Read, Write},
     net::{TcpStream, ToSocketAddrs},
     path::Path,
+    str,
     str::Utf8Error,
 };
 
@@ -235,6 +236,6 @@ pub fn scan_buffer_tcp<A: ToSocketAddrs>(
 /// An [`Utf8Result`] containing the scan result as [`bool`]
 ///
 pub fn clean(response: &[u8]) -> Utf8Result {
-    let response = std::str::from_utf8(response)?;
+    let response = str::from_utf8(response)?;
     Ok(response.contains("OK") && !response.contains("FOUND"))
 }
