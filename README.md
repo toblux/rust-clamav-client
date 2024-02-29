@@ -2,7 +2,7 @@
 
 A simple ClamAV client to send files, in-memory data, and byte streams to `clamd` for antivirus scanning. Supports Tokio and async-std.
 
-Please note: The functions `ping_socket`, `scan_file_socket`, `scan_buffer_socket`, and `scan_stream_socket` are only available on Unix platforms.
+Please note: The functions `ping_socket`, `scan_file_socket`, `scan_buffer_socket`, `scan_stream_socket`, and `get_version_socket` are only available on Unix platforms.
 
 Check out the [examples](#examples) below, the [integration tests](tests/clamav_client.rs), or the [API docs](https://docs.rs/clamav-client) for more information on how to use this library.
 

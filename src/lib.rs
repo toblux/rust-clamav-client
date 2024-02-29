@@ -33,7 +33,7 @@ const VERSION: &[u8; 9] = b"zVERSION\0";
 const INSTREAM: &[u8; 10] = b"zINSTREAM\0";
 const END_OF_STREAM: &[u8; 4] = &[0, 0, 0, 0];
 
-/// ClamAV responses
+/// ClamAV's response to a PING request
 pub const PONG: &[u8; 5] = b"PONG\0";
 
 fn send_command<RW: Read + Write>(
@@ -57,7 +57,7 @@ fn ping<RW: Read + Write>(stream: RW) -> IoResult {
     send_command(stream, PING, Some(PONG.len()))
 }
 
-fn get_clamav_version<RW: Read + Write>(stream: RW) -> IoResult {
+fn get_version<RW: Read + Write>(stream: RW) -> IoResult {
     send_command(stream, VERSION, None)
 }
 
@@ -92,7 +92,16 @@ fn scan<R: Read, RW: Read + Write>(
 /// Sends a ping request to ClamAV using a Unix socket connection
 ///
 /// This function establishes a Unix socket connection to a ClamAV server at the
-/// specified `socket_path` and sends a ping request to it.
+/// specified `socket_path` and sends the PING command to it. If the server
+/// is available, it responds with [`PONG`].
+///
+/// # Arguments
+///
+/// * `socket_path`: Path to the Unix socket for the ClamAV server
+///
+/// # Returns
+///
+/// An [`IoResult`] containing the server's response as a vector of bytes
 ///
 /// # Example
 ///
@@ -112,13 +121,33 @@ pub fn ping_socket<P: AsRef<Path>>(socket_path: P) -> IoResult {
     ping(stream)
 }
 
-/// TODO
+/// Gets the version number from ClamAV using a Unix socket connection
+///
+/// This function establishes a Unix socket connection to a ClamAV server at the
+/// specified `socket_path` and sends the VERSION command to it. If the
+/// server is available, it responds with its version number.
+///
+/// # Arguments
+///
+/// * `socket_path`: Path to the Unix socket for the ClamAV server
+///
+/// # Returns
+///
+/// An [`IoResult`] containing the server's response as a vector of bytes
+///
+/// # Example
+///
+/// ```
+/// let version = clamav_client::get_version_socket("/tmp/clamd.socket").unwrap();
+/// # assert!(version.starts_with(b"ClamAV"));
+/// ```
+///
 #[cfg(unix)]
-pub fn get_clamav_version_socket<P: AsRef<Path>>(socket_path: P) -> IoResult {
+pub fn get_version_socket<P: AsRef<Path>>(socket_path: P) -> IoResult {
     use std::os::unix::net::UnixStream;
 
     let stream = UnixStream::connect(socket_path)?;
-    get_clamav_version(stream)
+    get_version(stream)
 }
 
 /// Scans a file for viruses using a Unix socket connection
@@ -179,7 +208,16 @@ pub fn scan_buffer_socket<P: AsRef<Path>>(
 /// Sends a ping request to ClamAV using a TCP connection
 ///
 /// This function establishes a TCP connection to a ClamAV server at the
-/// specified `host_address` and sends a ping request to it.
+/// specified `host_address` and sends the PING command to it. If
+/// the server is available, it responds with [`PONG`].
+///
+/// # Arguments
+///
+/// * `host_address`: The address (host and port) of the ClamAV server
+///
+/// # Returns
+///
+/// An [`IoResult`] containing the server's response as a vector of bytes
 ///
 /// # Example
 ///
@@ -196,10 +234,30 @@ pub fn ping_tcp<A: ToSocketAddrs>(host_address: A) -> IoResult {
     ping(stream)
 }
 
-/// TODO
-pub fn get_clamav_version_tcp<A: ToSocketAddrs>(host_address: A) -> IoResult {
+/// Gets the version number from ClamAV using a TCP connection
+///
+/// This function establishes a TCP connection to a ClamAV server at the
+/// specified `host_address` and sends the VERSION command to it. If the
+/// server is available, it responds with its version number.
+///
+/// # Arguments
+///
+/// * `host_address`: The address (host and port) of the ClamAV server
+///
+/// # Returns
+///
+/// An [`IoResult`] containing the server's response as a vector of bytes
+///
+/// # Example
+///
+/// ```
+/// let version = clamav_client::get_version_tcp("localhost:3310").unwrap();
+/// # assert!(version.starts_with(b"ClamAV"));
+/// ```
+///
+pub fn get_version_tcp<A: ToSocketAddrs>(host_address: A) -> IoResult {
     let stream = TcpStream::connect(host_address)?;
-    get_clamav_version(stream)
+    get_version(stream)
 }
 
 /// Scans a file for viruses using a TCP connection

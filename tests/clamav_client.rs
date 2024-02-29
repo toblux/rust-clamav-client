@@ -27,12 +27,12 @@ fn ping_socket() {
 
 #[test]
 #[cfg(unix)]
-fn get_clamav_version_socket() {
+fn get_version_socket() {
     let err_msg = format!(
         "Could not get ClamAV version via Unix socket at {}",
         TEST_SOCKET_PATH
     );
-    let response = clamav_client::get_clamav_version_socket(TEST_SOCKET_PATH).expect(&err_msg);
+    let response = clamav_client::get_version_socket(TEST_SOCKET_PATH).expect(&err_msg);
     assert!(&response.starts_with(b"ClamAV"));
 }
 
@@ -98,12 +98,12 @@ fn ping_tcp() {
 }
 
 #[test]
-fn get_clamav_version_tcp() {
+fn get_version_tcp() {
     let err_msg = format!(
         "Could not get ClamAV version via TCP at {}",
         TEST_HOST_ADDRESS
     );
-    let response = clamav_client::get_clamav_version_tcp(TEST_HOST_ADDRESS).expect(&err_msg);
+    let response = clamav_client::get_version_tcp(TEST_HOST_ADDRESS).expect(&err_msg);
     assert!(&response.starts_with(b"ClamAV"));
 }
 
