@@ -185,7 +185,7 @@ More examples can be found in the [tests](tests/clamav_client.rs).
 
 For the tests to pass, you should start `clamd` as follows:
 
-`clamd -F --config-file=clamd/clamd.conf --datadir=clamd/database`
+`clamd -F --config-file=clamd/clamd.conf`
 
 and then run `cargo test --all-features` to cover all tests.
 
