@@ -1,16 +1,19 @@
 use std::path::Path;
 use tokio::{
     fs::File,
-    io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt},
+    io::{self, AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt},
     net::{TcpStream, ToSocketAddrs},
 };
+
+#[cfg(unix)]
+use tokio::net::UnixStream;
 
 #[cfg(feature = "tokio-stream")]
 use tokio_stream::{Stream, StreamExt};
 
 use super::{IoResult, DEFAULT_CHUNK_SIZE, END_OF_STREAM, INSTREAM, PING, PONG};
 
-async fn ping<RW: AsyncRead + AsyncWrite + Unpin>(mut stream: RW) -> IoResult {
+async fn _ping<RW: AsyncRead + AsyncWrite + Unpin>(mut stream: RW) -> IoResult {
     stream.write_all(PING).await?;
     stream.flush().await?;
 
@@ -51,7 +54,7 @@ async fn scan<R: AsyncRead + Unpin, RW: AsyncRead + AsyncWrite + Unpin>(
 }
 
 #[cfg(feature = "tokio-stream")]
-async fn scan_stream<
+async fn _scan_stream<
     S: Stream<Item = Result<bytes::Bytes, std::io::Error>>,
     RW: AsyncRead + AsyncWrite + Unpin,
 >(
@@ -105,21 +108,19 @@ async fn scan_stream<
 ///
 #[cfg(unix)]
 pub async fn ping_socket<P: AsRef<Path>>(socket_path: P) -> IoResult {
-    use tokio::net::UnixStream;
-
-    let stream = UnixStream::connect(socket_path).await?;
-    ping(stream).await
+    ping(Socket(socket_path)).await
 }
 
 /// Scans a file for viruses using a Unix socket connection
 ///
-/// This function reads data from a file located at the specified `path` and
-/// streams it to a ClamAV server through a Unix socket connection for scanning.
+/// This function reads data from a file located at the specified `file_path`
+/// and streams it to a ClamAV server through a Unix socket connection for
+/// scanning.
 ///
 /// # Arguments
 ///
-/// * `file_path`: Path to the file to be scanned
-/// * `socket_path`: Path to the Unix socket for the ClamAV server
+/// * `file_path`: The path to the file to be scanned
+/// * `socket_path`: The path to the Unix socket of the ClamAV server
 /// * `chunk_size`: An optional chunk size for reading data. If [`None`], a default chunk size is used
 ///
 /// # Returns
@@ -132,11 +133,7 @@ pub async fn scan_file_socket<P: AsRef<Path>>(
     socket_path: P,
     chunk_size: Option<usize>,
 ) -> IoResult {
-    use tokio::net::UnixStream;
-
-    let file = File::open(file_path).await?;
-    let stream = UnixStream::connect(socket_path).await?;
-    scan(file, chunk_size, stream).await
+    scan_file(file_path, Socket(socket_path), chunk_size).await
 }
 
 /// Scans a data buffer for viruses using a Unix socket connection
@@ -147,7 +144,7 @@ pub async fn scan_file_socket<P: AsRef<Path>>(
 /// # Arguments
 ///
 /// * `buffer`: The data to be scanned
-/// * `socket_path`: The path to the Unix socket for the ClamAV server
+/// * `socket_path`: The path to the Unix socket of the ClamAV server
 /// * `chunk_size`: An optional chunk size for reading data. If [`None`], a default chunk size is used
 ///
 /// # Returns
@@ -160,10 +157,7 @@ pub async fn scan_buffer_socket<P: AsRef<Path>>(
     socket_path: P,
     chunk_size: Option<usize>,
 ) -> IoResult {
-    use tokio::net::UnixStream;
-
-    let stream = UnixStream::connect(socket_path).await?;
-    scan(buffer, chunk_size, stream).await
+    scan_buffer(buffer, Socket(socket_path), chunk_size).await
 }
 
 /// Scans a stream for viruses using a Unix socket connection
@@ -174,7 +168,7 @@ pub async fn scan_buffer_socket<P: AsRef<Path>>(
 /// # Arguments
 ///
 /// * `input_stream`: The stream to be scanned
-/// * `socket_path`: The path to the Unix socket for the ClamAV server
+/// * `socket_path`: The path to the Unix socket of the ClamAV server
 /// * `chunk_size`: An optional chunk size for reading data. If [`None`], a default chunk size is used
 ///
 /// # Returns
@@ -183,17 +177,14 @@ pub async fn scan_buffer_socket<P: AsRef<Path>>(
 ///
 #[cfg(all(unix, feature = "tokio-stream"))]
 pub async fn scan_stream_socket<
-    S: Stream<Item = Result<bytes::Bytes, std::io::Error>>,
+    S: Stream<Item = Result<bytes::Bytes, io::Error>>,
     P: AsRef<Path>,
 >(
     input_stream: S,
     socket_path: P,
     chunk_size: Option<usize>,
 ) -> IoResult {
-    use tokio::net::UnixStream;
-
-    let output_stream = UnixStream::connect(socket_path).await?;
-    scan_stream(input_stream, chunk_size, output_stream).await
+    scan_stream(input_stream, Socket(socket_path), chunk_size).await
 }
 
 /// Sends a ping request to ClamAV using a TCP connection
@@ -215,14 +206,13 @@ pub async fn scan_stream_socket<
 /// ```
 ///
 pub async fn ping_tcp<A: ToSocketAddrs>(host_address: A) -> IoResult {
-    let stream = TcpStream::connect(host_address).await?;
-    ping(stream).await
+    ping(Tcp(host_address)).await
 }
 
 /// Scans a file for viruses using a TCP connection
 ///
-/// This function reads data from a file located at the specified `path` and
-/// streams it to a ClamAV server through a TCP connection for scanning.
+/// This function reads data from a file located at the specified `file_path`
+/// and streams it to a ClamAV server through a TCP connection for scanning.
 ///
 /// # Arguments
 ///
@@ -239,9 +229,7 @@ pub async fn scan_file_tcp<P: AsRef<Path>, A: ToSocketAddrs>(
     host_address: A,
     chunk_size: Option<usize>,
 ) -> IoResult {
-    let file = File::open(file_path).await?;
-    let stream = TcpStream::connect(host_address).await?;
-    scan(file, chunk_size, stream).await
+    scan_file(file_path, Tcp(host_address), chunk_size).await
 }
 
 /// Scans a data buffer for viruses using a TCP connection
@@ -264,8 +252,7 @@ pub async fn scan_buffer_tcp<A: ToSocketAddrs>(
     host_address: A,
     chunk_size: Option<usize>,
 ) -> IoResult {
-    let stream = TcpStream::connect(host_address).await?;
-    scan(buffer, chunk_size, stream).await
+    scan_buffer(buffer, Tcp(host_address), chunk_size).await
 }
 
 /// Scans a stream for viruses using a TCP connection
@@ -285,13 +272,122 @@ pub async fn scan_buffer_tcp<A: ToSocketAddrs>(
 ///
 #[cfg(feature = "tokio-stream")]
 pub async fn scan_stream_tcp<
-    S: Stream<Item = Result<bytes::Bytes, std::io::Error>>,
+    S: Stream<Item = Result<bytes::Bytes, io::Error>>,
     A: ToSocketAddrs,
 >(
     input_stream: S,
     host_address: A,
     chunk_size: Option<usize>,
 ) -> IoResult {
-    let output_stream = TcpStream::connect(host_address).await?;
-    scan_stream(input_stream, chunk_size, output_stream).await
+    scan_stream(input_stream, Tcp(host_address), chunk_size).await
+}
+
+/// The address (host and port) of the ClamAV server
+struct Tcp<A: ToSocketAddrs>(A);
+
+/// The path to the Unix socket of the ClamAV server
+#[cfg(unix)]
+struct Socket<P: AsRef<Path>>(P);
+
+trait AsyncTransportProtocol {
+    type Stream: AsyncRead + AsyncWrite + Unpin;
+
+    async fn to_stream(&self) -> io::Result<Self::Stream>;
+}
+
+impl<A: ToSocketAddrs> AsyncTransportProtocol for Tcp<A> {
+    type Stream = TcpStream;
+
+    async fn to_stream(&self) -> io::Result<Self::Stream> {
+        TcpStream::connect(&self.0).await
+    }
+}
+
+#[cfg(unix)]
+impl<P: AsRef<Path>> AsyncTransportProtocol for Socket<P> {
+    type Stream = UnixStream;
+
+    async fn to_stream(&self) -> io::Result<Self::Stream> {
+        UnixStream::connect(&self.0).await
+    }
+}
+
+async fn ping<T: AsyncTransportProtocol>(transport_protocol: T) -> IoResult {
+    let stream = transport_protocol.to_stream().await?;
+    _ping(stream).await
+}
+
+/// Scans a file for viruses
+///
+/// This function reads data from a file located at the specified `file_path`
+/// and streams it to a ClamAV server for scanning.
+///
+/// # Arguments
+///
+/// * `file_path`: The path to the file to be scanned
+/// * `transport_protocol`: The protocol to use (either TCP or a Unix socket connection)
+/// * `chunk_size`: An optional chunk size for reading data. If [`None`], a default chunk size is used
+///
+/// # Returns
+///
+/// An [`IoResult`] containing the server's response as a vector of bytes
+///
+async fn scan_file<P: AsRef<Path>, T: AsyncTransportProtocol>(
+    file_path: P,
+    transport_protocol: T,
+    chunk_size: Option<usize>,
+) -> IoResult {
+    let file = File::open(file_path).await?;
+    let stream = transport_protocol.to_stream().await?;
+    scan(file, chunk_size, stream).await
+}
+
+/// Scans a data buffer for viruses
+///
+/// This function streams the provided `buffer` data to a ClamAV server
+///
+/// # Arguments
+///
+/// * `buffer`: The data to be scanned
+/// * `transport_protocol`: The protocol to use (either TCP or a Unix socket connection)
+/// * `chunk_size`: An optional chunk size for reading data. If [`None`], a default chunk size is used
+///
+/// # Returns
+///
+/// An [`IoResult`] containing the server's response as a vector of bytes
+///
+async fn scan_buffer<T: AsyncTransportProtocol>(
+    buffer: &[u8],
+    transport_protocol: T,
+    chunk_size: Option<usize>,
+) -> IoResult {
+    let stream = transport_protocol.to_stream().await?;
+    scan(buffer, chunk_size, stream).await
+}
+
+/// Scans a stream for viruses
+///
+/// This function sends the provided stream to a ClamAV server for scanning.
+///
+/// # Arguments
+///
+/// * `input_stream`: The stream to be scanned
+/// * `transport_protocol`: The protocol to use (either TCP or a Unix socket connection)
+/// * `chunk_size`: An optional chunk size for reading data. If [`None`], a default chunk size is used
+///
+/// # Returns
+///
+/// An [`IoResult`] containing the server's response as a vector of bytes
+///
+#[cfg(feature = "tokio-stream")]
+async fn scan_stream<
+    S: Stream<Item = Result<bytes::Bytes, io::Error>>,
+    T: AsyncTransportProtocol,
+>(
+    input_stream: S,
+    transport_protocol: T,
+    chunk_size: Option<usize>,
+) -> IoResult {
+    let output_stream = transport_protocol.to_stream().await?;
+    _scan_stream(input_stream, chunk_size, output_stream).await
 }

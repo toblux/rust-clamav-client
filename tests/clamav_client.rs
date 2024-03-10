@@ -572,7 +572,7 @@ mod async_std_stream_tests {
 
     use super::*;
     use async_std::{fs::File, path::Path};
-    use clamav_client::async_std::io::util::ReaderStream;
+    use async_std_util::io::ReaderStream;
 
     async fn stream_from_file<P: AsRef<Path>>(path: P) -> ReaderStream<File> {
         let path_str = path.as_ref().to_str().expect("Invalid path");
@@ -674,3 +674,6 @@ mod async_std_stream_tests {
         assert_eq!(clamav_client::clean(&response), Ok(false));
     }
 }
+
+#[cfg(feature = "async-std")]
+mod async_std_util;

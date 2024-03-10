@@ -11,12 +11,14 @@ pub mod async_std;
 
 use std::{
     fs::File,
-    io::{Error, Read, Write},
+    io::{self, Error, Read, Write},
     net::{TcpStream, ToSocketAddrs},
     path::Path,
-    str,
-    str::Utf8Error,
+    str::{self, Utf8Error},
 };
+
+#[cfg(unix)]
+use std::os::unix::net::UnixStream;
 
 /// Custom result type
 pub type IoResult = Result<Vec<u8>, Error>;
@@ -53,11 +55,11 @@ fn send_command<RW: Read + Write>(
     Ok(response)
 }
 
-fn ping<RW: Read + Write>(stream: RW) -> IoResult {
+fn _ping<RW: Read + Write>(stream: RW) -> IoResult {
     send_command(stream, PING, Some(PONG.len()))
 }
 
-fn get_version<RW: Read + Write>(stream: RW) -> IoResult {
+fn _get_version<RW: Read + Write>(stream: RW) -> IoResult {
     send_command(stream, VERSION, None)
 }
 
@@ -115,10 +117,7 @@ fn scan<R: Read, RW: Read + Write>(
 ///
 #[cfg(unix)]
 pub fn ping_socket<P: AsRef<Path>>(socket_path: P) -> IoResult {
-    use std::os::unix::net::UnixStream;
-
-    let stream = UnixStream::connect(socket_path)?;
-    ping(stream)
+    ping(Socket(socket_path))
 }
 
 /// Gets the version number from ClamAV using a Unix socket connection
@@ -144,21 +143,19 @@ pub fn ping_socket<P: AsRef<Path>>(socket_path: P) -> IoResult {
 ///
 #[cfg(unix)]
 pub fn get_version_socket<P: AsRef<Path>>(socket_path: P) -> IoResult {
-    use std::os::unix::net::UnixStream;
-
-    let stream = UnixStream::connect(socket_path)?;
-    get_version(stream)
+    get_version(Socket(socket_path))
 }
 
 /// Scans a file for viruses using a Unix socket connection
 ///
-/// This function reads data from a file located at the specified `path` and
-/// streams it to a ClamAV server through a Unix socket connection for scanning.
+/// This function reads data from a file located at the specified `file_path`
+/// and streams it to a ClamAV server through a Unix socket connection for
+/// scanning.
 ///
 /// # Arguments
 ///
-/// * `file_path`: Path to the file to be scanned
-/// * `socket_path`: Path to the Unix socket for the ClamAV server
+/// * `file_path`: The path to the file to be scanned
+/// * `socket_path`: The path to the Unix socket of the ClamAV server
 /// * `chunk_size`: An optional chunk size for reading data. If [`None`], a default chunk size is used
 ///
 /// # Returns
@@ -171,11 +168,7 @@ pub fn scan_file_socket<P: AsRef<Path>>(
     socket_path: P,
     chunk_size: Option<usize>,
 ) -> IoResult {
-    use std::os::unix::net::UnixStream;
-
-    let file = File::open(file_path)?;
-    let stream = UnixStream::connect(socket_path)?;
-    scan(file, chunk_size, stream)
+    scan_file(file_path, Socket(socket_path), chunk_size)
 }
 
 /// Scans a data buffer for viruses using a Unix socket connection
@@ -186,7 +179,7 @@ pub fn scan_file_socket<P: AsRef<Path>>(
 /// # Arguments
 ///
 /// * `buffer`: The data to be scanned
-/// * `socket_path`: The path to the Unix socket for the ClamAV server
+/// * `socket_path`: The path to the Unix socket of the ClamAV server
 /// * `chunk_size`: An optional chunk size for reading data. If [`None`], a default chunk size is used
 ///
 /// # Returns
@@ -199,10 +192,7 @@ pub fn scan_buffer_socket<P: AsRef<Path>>(
     socket_path: P,
     chunk_size: Option<usize>,
 ) -> IoResult {
-    use std::os::unix::net::UnixStream;
-
-    let stream = UnixStream::connect(socket_path)?;
-    scan(buffer, chunk_size, stream)
+    scan_buffer(buffer, Socket(socket_path), chunk_size)
 }
 
 /// Sends a ping request to ClamAV using a TCP connection
@@ -230,8 +220,7 @@ pub fn scan_buffer_socket<P: AsRef<Path>>(
 /// ```
 ///
 pub fn ping_tcp<A: ToSocketAddrs>(host_address: A) -> IoResult {
-    let stream = TcpStream::connect(host_address)?;
-    ping(stream)
+    ping(Tcp(host_address))
 }
 
 /// Gets the version number from ClamAV using a TCP connection
@@ -256,14 +245,13 @@ pub fn ping_tcp<A: ToSocketAddrs>(host_address: A) -> IoResult {
 /// ```
 ///
 pub fn get_version_tcp<A: ToSocketAddrs>(host_address: A) -> IoResult {
-    let stream = TcpStream::connect(host_address)?;
-    get_version(stream)
+    get_version(Tcp(host_address))
 }
 
 /// Scans a file for viruses using a TCP connection
 ///
-/// This function reads data from a file located at the specified `path` and
-/// streams it to a ClamAV server through a TCP connection for scanning.
+/// This function reads data from a file located at the specified `file_path`
+/// and streams it to a ClamAV server through a TCP connection for scanning.
 ///
 /// # Arguments
 ///
@@ -280,9 +268,7 @@ pub fn scan_file_tcp<P: AsRef<Path>, A: ToSocketAddrs>(
     host_address: A,
     chunk_size: Option<usize>,
 ) -> IoResult {
-    let file = File::open(file_path)?;
-    let stream = TcpStream::connect(host_address)?;
-    scan(file, chunk_size, stream)
+    scan_file(file_path, Tcp(host_address), chunk_size)
 }
 
 /// Scans a data buffer for viruses using a TCP connection
@@ -305,8 +291,7 @@ pub fn scan_buffer_tcp<A: ToSocketAddrs>(
     host_address: A,
     chunk_size: Option<usize>,
 ) -> IoResult {
-    let stream = TcpStream::connect(host_address)?;
-    scan(buffer, chunk_size, stream)
+    scan_buffer(buffer, Tcp(host_address), chunk_size)
 }
 
 /// Checks whether the ClamAV response indicates that the scanned content is
@@ -327,4 +312,63 @@ pub fn scan_buffer_tcp<A: ToSocketAddrs>(
 pub fn clean(response: &[u8]) -> Utf8Result {
     let response = str::from_utf8(response)?;
     Ok(response.contains("OK") && !response.contains("FOUND"))
+}
+
+trait TransportProtocol {
+    type Stream: Read + Write;
+
+    fn to_stream(&self) -> io::Result<Self::Stream>;
+}
+
+/// The address (host and port) of the ClamAV server
+struct Tcp<A: ToSocketAddrs>(A);
+
+/// The path to the Unix socket of the ClamAV server
+#[cfg(unix)]
+struct Socket<P: AsRef<Path>>(P);
+
+impl<A: ToSocketAddrs> TransportProtocol for Tcp<A> {
+    type Stream = TcpStream;
+
+    fn to_stream(&self) -> io::Result<Self::Stream> {
+        TcpStream::connect(&self.0)
+    }
+}
+
+#[cfg(unix)]
+impl<P: AsRef<Path>> TransportProtocol for Socket<P> {
+    type Stream = UnixStream;
+
+    fn to_stream(&self) -> io::Result<Self::Stream> {
+        UnixStream::connect(&self.0)
+    }
+}
+
+fn ping<T: TransportProtocol>(transport_protocol: T) -> IoResult {
+    let stream = transport_protocol.to_stream()?;
+    _ping(stream)
+}
+
+fn get_version<T: TransportProtocol>(transport_protocol: T) -> IoResult {
+    let stream = transport_protocol.to_stream()?;
+    _get_version(stream)
+}
+
+fn scan_file<P: AsRef<Path>, T: TransportProtocol>(
+    file_path: P,
+    transport_protocol: T,
+    chunk_size: Option<usize>,
+) -> IoResult {
+    let file = File::open(file_path)?;
+    let stream = transport_protocol.to_stream()?;
+    scan(file, chunk_size, stream)
+}
+
+fn scan_buffer<T: TransportProtocol>(
+    buffer: &[u8],
+    transport_protocol: T,
+    chunk_size: Option<usize>,
+) -> IoResult {
+    let stream = transport_protocol.to_stream()?;
+    scan(buffer, chunk_size, stream)
 }

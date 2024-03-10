@@ -4,9 +4,7 @@ use core::task::{Context, Poll};
 use std::io::Result;
 use std::pin::Pin;
 
-const DEFAULT_CAPACITY: usize = 4096;
-
-/// Inspired by `tokio_util::io::ReaderStream`, [`ReaderStream`] converts a
+/// Inspired by [`tokio_util::io::ReaderStream`], [`ReaderStream`] converts a
 /// [`ReadExt`] into a [`async_std::stream::Stream`] of bytes
 #[derive(Debug)]
 pub struct ReaderStream<R> {
@@ -16,15 +14,6 @@ pub struct ReaderStream<R> {
 }
 
 impl<R: ReadExt> ReaderStream<R> {
-    /// Converts a [`ReadExt`] into a [`async_std::stream::Stream`] of bytes
-    pub fn new(reader: R) -> Self {
-        ReaderStream {
-            reader: Some(reader),
-            buffer: BytesMut::with_capacity(DEFAULT_CAPACITY),
-            capacity: DEFAULT_CAPACITY,
-        }
-    }
-
     /// Converts a [`ReadExt`] into a [`async_std::stream::Stream`] of bytes
     /// with a custom read buffer capacity
     pub fn with_capacity(reader: R, capacity: usize) -> Self {
