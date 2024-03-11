@@ -12,16 +12,27 @@ use tokio::net::UnixStream;
 #[cfg(feature = "tokio-stream")]
 use tokio_stream::{Stream, StreamExt};
 
-use super::{IoResult, DEFAULT_CHUNK_SIZE, END_OF_STREAM, INSTREAM, PING, PONG};
+use super::{IoResult, DEFAULT_CHUNK_SIZE, END_OF_STREAM, INSTREAM, PING, PONG, VERSION};
 
-async fn _ping<RW: AsyncRead + AsyncWrite + Unpin>(mut stream: RW) -> IoResult {
-    stream.write_all(PING).await?;
+async fn send_command<RW: AsyncRead + AsyncWrite + Unpin>(
+    mut stream: RW,
+    command: &[u8],
+    expected_response_length: Option<usize>,
+) -> IoResult {
+    stream.write_all(command).await?;
     stream.flush().await?;
 
-    let capacity = PONG.len();
-    let mut response = Vec::with_capacity(capacity);
+    let mut response = match expected_response_length {
+        Some(len) => Vec::with_capacity(len),
+        None => Vec::new(),
+    };
+
     stream.read_to_end(&mut response).await?;
     Ok(response)
+}
+
+async fn _ping<RW: AsyncRead + AsyncWrite + Unpin>(stream: RW) -> IoResult {
+    send_command(stream, PING, Some(PONG.len())).await
 }
 
 async fn scan<R: AsyncRead + Unpin, RW: AsyncRead + AsyncWrite + Unpin>(
@@ -357,6 +368,36 @@ impl<P: AsRef<Path>> AsyncTransportProtocol for Socket<P> {
 pub async fn ping<T: AsyncTransportProtocol>(transport_protocol: T) -> IoResult {
     let stream = transport_protocol.to_stream().await?;
     _ping(stream).await
+}
+
+/// Gets the version number from ClamAV
+///
+/// This function establishes a connection to a ClamAV server and sends the
+/// VERSION command to it. If the server is available, it responds with its
+/// version number.
+///
+/// # Arguments
+///
+/// * `transport_protocol`: The protocol to use (either TCP or a Unix socket connection)
+///
+/// # Returns
+///
+/// An [`IoResult`] containing the server's response as a vector of bytes
+///
+/// # Example
+///
+/// ```
+/// # #[tokio::main(flavor = "current_thread")]
+/// # async fn main() {
+/// let transport_protocol = clamav_client::tokio::Tcp("localhost:3310");
+/// let version = clamav_client::tokio::get_version(transport_protocol).await.unwrap();
+/// # assert!(version.starts_with(b"ClamAV"));
+/// # }
+/// ```
+///
+pub async fn get_version<T: AsyncTransportProtocol>(transport_protocol: T) -> IoResult {
+    let stream = transport_protocol.to_stream().await?;
+    send_command(stream, VERSION, None).await
 }
 
 /// Scans a file for viruses
