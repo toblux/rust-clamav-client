@@ -111,6 +111,7 @@ async fn _scan_stream<
 /// # }
 /// ```
 ///
+#[deprecated(since = "0.5.0", note = "Use `ping` instead")]
 #[cfg(unix)]
 pub async fn ping_socket<P: AsRef<Path>>(socket_path: P) -> IoResult {
     ping(Socket(socket_path)).await
@@ -132,6 +133,7 @@ pub async fn ping_socket<P: AsRef<Path>>(socket_path: P) -> IoResult {
 ///
 /// An [`IoResult`] containing the server's response as a vector of bytes
 ///
+#[deprecated(since = "0.5.0", note = "Use `scan_file` instead")]
 #[cfg(unix)]
 pub async fn scan_file_socket<P: AsRef<Path>>(
     file_path: P,
@@ -156,6 +158,7 @@ pub async fn scan_file_socket<P: AsRef<Path>>(
 ///
 /// An [`IoResult`] containing the server's response as a vector of bytes
 ///
+#[deprecated(since = "0.5.0", note = "Use `scan_buffer` instead")]
 #[cfg(unix)]
 pub async fn scan_buffer_socket<P: AsRef<Path>>(
     buffer: &[u8],
@@ -180,6 +183,7 @@ pub async fn scan_buffer_socket<P: AsRef<Path>>(
 ///
 /// An [`IoResult`] containing the server's response as a vector of bytes
 ///
+#[deprecated(since = "0.5.0", note = "Use `scan_stream` instead")]
 #[cfg(unix)]
 pub async fn scan_stream_socket<
     S: Stream<Item = Result<bytes::Bytes, std::io::Error>>,
@@ -210,6 +214,7 @@ pub async fn scan_stream_socket<
 /// # }
 /// ```
 ///
+#[deprecated(since = "0.5.0", note = "Use `ping` instead")]
 pub async fn ping_tcp<A: ToSocketAddrs>(host_address: A) -> IoResult {
     ping(Tcp(host_address)).await
 }
@@ -229,6 +234,7 @@ pub async fn ping_tcp<A: ToSocketAddrs>(host_address: A) -> IoResult {
 ///
 /// An [`IoResult`] containing the server's response as a vector of bytes
 ///
+#[deprecated(since = "0.5.0", note = "Use `scan_file` instead")]
 pub async fn scan_file_tcp<P: AsRef<Path>, A: ToSocketAddrs>(
     file_path: P,
     host_address: A,
@@ -252,6 +258,7 @@ pub async fn scan_file_tcp<P: AsRef<Path>, A: ToSocketAddrs>(
 ///
 /// An [`IoResult`] containing the server's response as a vector of bytes
 ///
+#[deprecated(since = "0.5.0", note = "Use `scan_buffer` instead")]
 pub async fn scan_buffer_tcp<A: ToSocketAddrs>(
     buffer: &[u8],
     host_address: A,
@@ -275,6 +282,7 @@ pub async fn scan_buffer_tcp<A: ToSocketAddrs>(
 ///
 /// An [`IoResult`] containing the server's response as a vector of bytes
 ///
+#[deprecated(since = "0.5.0", note = "Use `scan_stream` instead")]
 pub async fn scan_stream_tcp<
     S: Stream<Item = Result<bytes::Bytes, std::io::Error>>,
     A: ToSocketAddrs,

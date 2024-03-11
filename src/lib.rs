@@ -115,6 +115,7 @@ fn scan<R: Read, RW: Read + Write>(
 /// # assert!(clamd_available);
 /// ```
 ///
+#[deprecated(since = "0.5.0", note = "Use `ping` instead")]
 #[cfg(unix)]
 pub fn ping_socket<P: AsRef<Path>>(socket_path: P) -> IoResult {
     ping(Socket(socket_path))
@@ -141,6 +142,7 @@ pub fn ping_socket<P: AsRef<Path>>(socket_path: P) -> IoResult {
 /// # assert!(version.starts_with(b"ClamAV"));
 /// ```
 ///
+#[deprecated(since = "0.5.0", note = "Use `get_version` instead")]
 #[cfg(unix)]
 pub fn get_version_socket<P: AsRef<Path>>(socket_path: P) -> IoResult {
     get_version(Socket(socket_path))
@@ -162,6 +164,7 @@ pub fn get_version_socket<P: AsRef<Path>>(socket_path: P) -> IoResult {
 ///
 /// An [`IoResult`] containing the server's response as a vector of bytes
 ///
+#[deprecated(since = "0.5.0", note = "Use `scan_file` instead")]
 #[cfg(unix)]
 pub fn scan_file_socket<P: AsRef<Path>>(
     file_path: P,
@@ -186,6 +189,7 @@ pub fn scan_file_socket<P: AsRef<Path>>(
 ///
 /// An [`IoResult`] containing the server's response as a vector of bytes
 ///
+#[deprecated(since = "0.5.0", note = "Use `scan_buffer` instead")]
 #[cfg(unix)]
 pub fn scan_buffer_socket<P: AsRef<Path>>(
     buffer: &[u8],
@@ -219,6 +223,7 @@ pub fn scan_buffer_socket<P: AsRef<Path>>(
 /// # assert!(clamd_available);
 /// ```
 ///
+#[deprecated(since = "0.5.0", note = "Use `ping` instead")]
 pub fn ping_tcp<A: ToSocketAddrs>(host_address: A) -> IoResult {
     ping(Tcp(host_address))
 }
@@ -244,6 +249,7 @@ pub fn ping_tcp<A: ToSocketAddrs>(host_address: A) -> IoResult {
 /// # assert!(version.starts_with(b"ClamAV"));
 /// ```
 ///
+#[deprecated(since = "0.5.0", note = "Use `get_version` instead")]
 pub fn get_version_tcp<A: ToSocketAddrs>(host_address: A) -> IoResult {
     get_version(Tcp(host_address))
 }
@@ -263,6 +269,7 @@ pub fn get_version_tcp<A: ToSocketAddrs>(host_address: A) -> IoResult {
 ///
 /// An [`IoResult`] containing the server's response as a vector of bytes
 ///
+#[deprecated(since = "0.5.0", note = "Use `scan_file` instead")]
 pub fn scan_file_tcp<P: AsRef<Path>, A: ToSocketAddrs>(
     file_path: P,
     host_address: A,
@@ -286,6 +293,7 @@ pub fn scan_file_tcp<P: AsRef<Path>, A: ToSocketAddrs>(
 ///
 /// An [`IoResult`] containing the server's response as a vector of bytes
 ///
+#[deprecated(since = "0.5.0", note = "Use `scan_buffer` instead")]
 pub fn scan_buffer_tcp<A: ToSocketAddrs>(
     buffer: &[u8],
     host_address: A,
