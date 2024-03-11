@@ -314,18 +314,21 @@ pub fn clean(response: &[u8]) -> Utf8Result {
     Ok(response.contains("OK") && !response.contains("FOUND"))
 }
 
-trait TransportProtocol {
+/// TODO: Add comment
+pub trait TransportProtocol {
+    /// TODO: Add comment
     type Stream: Read + Write;
 
+    /// TODO: Add comment
     fn to_stream(&self) -> io::Result<Self::Stream>;
 }
 
 /// The address (host and port) of the ClamAV server
-struct Tcp<A: ToSocketAddrs>(A);
+pub struct Tcp<A: ToSocketAddrs>(pub A);
 
 /// The path to the Unix socket of the ClamAV server
 #[cfg(unix)]
-struct Socket<P: AsRef<Path>>(P);
+pub struct Socket<P: AsRef<Path>>(pub P);
 
 impl<A: ToSocketAddrs> TransportProtocol for Tcp<A> {
     type Stream = TcpStream;
@@ -344,17 +347,78 @@ impl<P: AsRef<Path>> TransportProtocol for Socket<P> {
     }
 }
 
-fn ping<T: TransportProtocol>(transport_protocol: T) -> IoResult {
+/// Sends a ping request to ClamAV
+///
+/// This function establishes a connection to a ClamAV server and sends the PING
+/// command to it. If the server is available, it responds with [`PONG`].
+///
+/// # Arguments
+///
+/// * `transport_protocol`: The protocol to use (either TCP or a Unix socket connection)
+///
+/// # Returns
+///
+/// An [`IoResult`] containing the server's response as a vector of bytes
+///
+/// # Example
+///
+/// ```
+/// let transport_protocol = clamav_client::Tcp("localhost:3310");
+/// let clamd_available = match clamav_client::ping(transport_protocol) {
+///     Ok(ping_response) => ping_response == clamav_client::PONG,
+///     Err(_) => false,
+/// };
+/// # assert!(clamd_available);
+/// ```
+///
+pub fn ping<T: TransportProtocol>(transport_protocol: T) -> IoResult {
     let stream = transport_protocol.to_stream()?;
     _ping(stream)
 }
 
-fn get_version<T: TransportProtocol>(transport_protocol: T) -> IoResult {
+/// Gets the version number from ClamAV
+///
+/// This function establishes a connection to a ClamAV server and sends the
+/// VERSION command to it. If the server is available, it responds with its
+/// version number.
+///
+/// # Arguments
+///
+/// * `transport_protocol`: The protocol to use (either TCP or a Unix socket connection)
+///
+/// # Returns
+///
+/// An [`IoResult`] containing the server's response as a vector of bytes
+///
+/// # Example
+///
+/// ```
+/// let transport_protocol = clamav_client::Tcp("localhost:3310");
+/// let version = clamav_client::get_version(transport_protocol).unwrap();
+/// # assert!(version.starts_with(b"ClamAV"));
+/// ```
+///
+pub fn get_version<T: TransportProtocol>(transport_protocol: T) -> IoResult {
     let stream = transport_protocol.to_stream()?;
     _get_version(stream)
 }
 
-fn scan_file<P: AsRef<Path>, T: TransportProtocol>(
+/// Scans a file for viruses
+///
+/// This function reads data from a file located at the specified `file_path`
+/// and streams it to a ClamAV server for scanning.
+///
+/// # Arguments
+///
+/// * `file_path`: The path to the file to be scanned
+/// * `transport_protocol`: The protocol to use (either TCP or a Unix socket connection)
+/// * `chunk_size`: An optional chunk size for reading data. If [`None`], a default chunk size is used
+///
+/// # Returns
+///
+/// An [`IoResult`] containing the server's response as a vector of bytes
+///
+pub fn scan_file<P: AsRef<Path>, T: TransportProtocol>(
     file_path: P,
     transport_protocol: T,
     chunk_size: Option<usize>,
@@ -364,7 +428,22 @@ fn scan_file<P: AsRef<Path>, T: TransportProtocol>(
     scan(file, chunk_size, stream)
 }
 
-fn scan_buffer<T: TransportProtocol>(
+/// Scans a data buffer for viruses
+///
+/// This function streams the provided `buffer` data to a ClamAV server for
+/// scanning.
+///
+/// # Arguments
+///
+/// * `buffer`: The data to be scanned
+/// * `transport_protocol`: The protocol to use (either TCP or a Unix socket connection)
+/// * `chunk_size`: An optional chunk size for reading data. If [`None`], a default chunk size is used
+///
+/// # Returns
+///
+/// An [`IoResult`] containing the server's response as a vector of bytes
+///
+pub fn scan_buffer<T: TransportProtocol>(
     buffer: &[u8],
     transport_protocol: T,
     chunk_size: Option<usize>,

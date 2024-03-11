@@ -329,8 +329,16 @@ impl<P: AsRef<Path>> AsyncTransportProtocol for Socket<P> {
 
 /// Sends a ping request to ClamAV
 ///
-/// This function establishes a connection to a ClamAV server and sends a ping
-/// request to it.
+/// This function establishes a connection to a ClamAV server and sends the PING
+/// command to it. If the server is available, it responds with [`PONG`].
+///
+/// # Arguments
+///
+/// * `transport_protocol`: The protocol to use (either TCP or a Unix socket connection)
+///
+/// # Returns
+///
+/// An [`IoResult`] containing the server's response as a vector of bytes
 ///
 /// # Example
 ///
