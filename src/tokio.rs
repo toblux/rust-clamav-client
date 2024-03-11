@@ -31,10 +31,6 @@ async fn send_command<RW: AsyncRead + AsyncWrite + Unpin>(
     Ok(response)
 }
 
-async fn _ping<RW: AsyncRead + AsyncWrite + Unpin>(stream: RW) -> IoResult {
-    send_command(stream, PING, Some(PONG.len())).await
-}
-
 async fn scan<R: AsyncRead + Unpin, RW: AsyncRead + AsyncWrite + Unpin>(
     mut input: R,
     chunk_size: Option<usize>,
@@ -303,19 +299,21 @@ pub async fn scan_stream_tcp<
 }
 
 /// The address (host and port) of the ClamAV server
+#[derive(Copy, Clone)]
 pub struct Tcp<A: ToSocketAddrs>(pub A);
 
 /// The path to the Unix socket of the ClamAV server
+#[derive(Copy, Clone)]
 #[cfg(unix)]
 pub struct Socket<P: AsRef<Path>>(pub P);
 
-/// TODO: Add comment
+/// The communication protocol to use
 #[async_trait(?Send)]
 pub trait AsyncTransportProtocol {
-    /// TODO: Add comment
+    /// Bidirectional stream
     type Stream: AsyncRead + AsyncWrite + Unpin;
 
-    /// TODO: Add comment
+    /// Converts the protocol instance into the corresponding stream
     async fn to_stream(&self) -> io::Result<Self::Stream>;
 }
 
@@ -367,7 +365,7 @@ impl<P: AsRef<Path>> AsyncTransportProtocol for Socket<P> {
 ///
 pub async fn ping<T: AsyncTransportProtocol>(transport_protocol: T) -> IoResult {
     let stream = transport_protocol.to_stream().await?;
-    _ping(stream).await
+    send_command(stream, PING, Some(PONG.len())).await
 }
 
 /// Gets the version number from ClamAV

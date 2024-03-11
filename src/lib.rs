@@ -314,19 +314,21 @@ pub fn clean(response: &[u8]) -> Utf8Result {
     Ok(response.contains("OK") && !response.contains("FOUND"))
 }
 
-/// TODO: Add comment
+/// The communication protocol to use
 pub trait TransportProtocol {
-    /// TODO: Add comment
+    /// Bidirectional stream
     type Stream: Read + Write;
 
-    /// TODO: Add comment
+    /// Converts the protocol instance into the corresponding stream
     fn to_stream(&self) -> io::Result<Self::Stream>;
 }
 
 /// The address (host and port) of the ClamAV server
+#[derive(Copy, Clone)]
 pub struct Tcp<A: ToSocketAddrs>(pub A);
 
 /// The path to the Unix socket of the ClamAV server
+#[derive(Copy, Clone)]
 #[cfg(unix)]
 pub struct Socket<P: AsRef<Path>>(pub P);
 

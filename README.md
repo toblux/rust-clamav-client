@@ -44,9 +44,10 @@ clamav-client = { version = "0.4.6", features = ["async-std"] }
 
 ```rust
 let clamd_host_address = "localhost:3310";
+let clamd_host = clamav_client::Tcp(clamd_host_address);
 
 // Ping clamd to make sure the server is available and accepting TCP connections
-let clamd_available = match clamav_client::ping_tcp(clamd_host_address) {
+let clamd_available = match clamav_client::ping(clamd_host) {
     Ok(ping_response) => ping_response == clamav_client::PONG,
     Err(_) => false,
 };
@@ -59,7 +60,7 @@ assert!(clamd_available);
 
 // Scan file for viruses
 let file_path = "tests/data/eicar.txt";
-let scan_file_response = clamav_client::scan_file_tcp(file_path, clamd_host_address, None).unwrap();
+let scan_file_response = clamav_client::scan_file(file_path, clamd_host, None).unwrap();
 let file_clean = clamav_client::clean(&scan_file_response).unwrap();
 if file_clean {
     println!("No virus found in {}", file_path);
@@ -70,7 +71,7 @@ assert!(!file_clean);
 
 // Scan in-memory data for viruses
 let buffer = br#"X5O!P%@AP[4\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*"#;
-let scan_buffer_response = clamav_client::scan_buffer_tcp(buffer, clamd_host_address, None).unwrap();
+let scan_buffer_response = clamav_client::scan_buffer(buffer, clamd_host, None).unwrap();
 let data_clean = clamav_client::clean(&scan_buffer_response).unwrap();
 if data_clean {
     println!("No virus found");
@@ -86,9 +87,10 @@ assert!(!data_clean);
 #[cfg(feature = "tokio-stream")]
 tokio::runtime::Builder::new_current_thread().enable_all().build().unwrap().block_on(async {
     let clamd_host_address = "localhost:3310";
+    let clamd_host = clamav_client::tokio::Tcp(clamd_host_address);
 
     // Ping clamd asynchronously and await the result
-    let clamd_available = match clamav_client::tokio::ping_tcp(clamd_host_address).await {
+    let clamd_available = match clamav_client::tokio::ping(clamd_host).await {
         Ok(ping_response) => ping_response == clamav_client::PONG,
         Err(_) => false,
     };
@@ -106,9 +108,9 @@ tokio::runtime::Builder::new_current_thread().enable_all().build().unwrap().bloc
 
     // Concurrently scan a file, a data buffer, and a file stream for viruses
     let (scan_file_result, scan_buffer_result, scan_stream_result) = tokio::join!(
-        clamav_client::tokio::scan_file_tcp(file_path, clamd_host_address, None),
-        clamav_client::tokio::scan_buffer_tcp(buffer, clamd_host_address, None),
-        clamav_client::tokio::scan_stream_tcp(stream, clamd_host_address, None)
+        clamav_client::tokio::scan_file(file_path, clamd_host, None),
+        clamav_client::tokio::scan_buffer(buffer, clamd_host, None),
+        clamav_client::tokio::scan_stream(stream, clamd_host, None)
     );
 
     let scan_file_response = scan_file_result.unwrap();
@@ -146,9 +148,10 @@ tokio::runtime::Builder::new_current_thread().enable_all().build().unwrap().bloc
 #[cfg(feature = "async-std")]
 async_std::task::block_on(async {
     let clamd_host_address = "localhost:3310";
+    let clamd_host = clamav_client::async_std::Tcp(clamd_host_address);
 
     // Ping clamd asynchronously and await the result
-    let clamd_available = match clamav_client::async_std::ping_tcp(clamd_host_address).await {
+    let clamd_available = match clamav_client::async_std::ping(clamd_host).await {
         Ok(ping_response) => ping_response == clamav_client::PONG,
         Err(_) => false,
     };
@@ -161,7 +164,7 @@ async_std::task::block_on(async {
 
     // Scan a file for viruses
     let file_path = "tests/data/eicar.txt";
-    let scan_file_result = clamav_client::async_std::scan_file_tcp(file_path, clamd_host_address, None).await;
+    let scan_file_result = clamav_client::async_std::scan_file(file_path, clamd_host, None).await;
     let scan_file_response = scan_file_result.unwrap();
     let file_clean = clamav_client::clean(&scan_file_response).unwrap();
     if file_clean {
