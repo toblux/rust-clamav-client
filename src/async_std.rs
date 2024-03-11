@@ -5,6 +5,7 @@ use async_std::{
     path::Path,
     stream::{Stream, StreamExt},
 };
+use async_trait::async_trait;
 
 #[cfg(unix)]
 use async_std::os::unix::net::UnixStream;
@@ -279,18 +280,23 @@ pub async fn scan_stream_tcp<
 }
 
 /// The address (host and port) of the ClamAV server
-struct Tcp<A: ToSocketAddrs>(A);
+pub struct Tcp<A: ToSocketAddrs>(pub A);
 
 /// The path to the Unix socket of the ClamAV server
 #[cfg(unix)]
-struct Socket<P: AsRef<Path>>(P);
+pub struct Socket<P: AsRef<Path>>(pub P);
 
-trait AsyncTransportProtocol {
+/// TODO: Add comment
+#[async_trait(?Send)]
+pub trait AsyncTransportProtocol {
+    /// TODO: Add comment
     type Stream: ReadExt + WriteExt + Unpin;
 
+    /// TODO: Add comment
     async fn to_stream(&self) -> io::Result<Self::Stream>;
 }
 
+#[async_trait(?Send)]
 impl<A: ToSocketAddrs> AsyncTransportProtocol for Tcp<A> {
     type Stream = TcpStream;
 
@@ -299,6 +305,7 @@ impl<A: ToSocketAddrs> AsyncTransportProtocol for Tcp<A> {
     }
 }
 
+#[async_trait(?Send)]
 #[cfg(unix)]
 impl<P: AsRef<Path>> AsyncTransportProtocol for Socket<P> {
     type Stream = UnixStream;
@@ -308,7 +315,34 @@ impl<P: AsRef<Path>> AsyncTransportProtocol for Socket<P> {
     }
 }
 
-async fn ping<T: AsyncTransportProtocol>(transport_protocol: T) -> IoResult {
+/// Sends a ping request to ClamAV
+///
+/// This function establishes a connection to a ClamAV server and sends a ping
+/// request to it.
+///
+/// # Arguments
+///
+/// * `transport_protocol`: The protocol to use (either TCP or a Unix socket connection)
+///
+/// # Returns
+///
+/// An [`IoResult`] containing the server's response as a vector of bytes
+///
+/// # Example
+///
+/// ```
+/// # #[async_std::main]
+/// # async fn main() {
+/// let transport_protocol = clamav_client::async_std::Tcp("localhost:3310");
+/// let clamd_available = match clamav_client::async_std::ping(transport_protocol).await {
+///     Ok(ping_response) => ping_response == clamav_client::PONG,
+///     Err(_) => false,
+/// };
+/// # assert!(clamd_available);
+/// # }
+/// ```
+///
+pub async fn ping<T: AsyncTransportProtocol>(transport_protocol: T) -> IoResult {
     let stream = transport_protocol.to_stream().await?;
     _ping(stream).await
 }
@@ -328,7 +362,7 @@ async fn ping<T: AsyncTransportProtocol>(transport_protocol: T) -> IoResult {
 ///
 /// An [`IoResult`] containing the server's response as a vector of bytes
 ///
-async fn scan_file<P: AsRef<Path>, T: AsyncTransportProtocol>(
+pub async fn scan_file<P: AsRef<Path>, T: AsyncTransportProtocol>(
     file_path: P,
     transport_protocol: T,
     chunk_size: Option<usize>,
@@ -352,7 +386,7 @@ async fn scan_file<P: AsRef<Path>, T: AsyncTransportProtocol>(
 ///
 /// An [`IoResult`] containing the server's response as a vector of bytes
 ///
-async fn scan_buffer<T: AsyncTransportProtocol>(
+pub async fn scan_buffer<T: AsyncTransportProtocol>(
     buffer: &[u8],
     transport_protocol: T,
     chunk_size: Option<usize>,
@@ -375,7 +409,7 @@ async fn scan_buffer<T: AsyncTransportProtocol>(
 ///
 /// An [`IoResult`] containing the server's response as a vector of bytes
 ///
-async fn scan_stream<
+pub async fn scan_stream<
     S: Stream<Item = Result<bytes::Bytes, io::Error>>,
     T: AsyncTransportProtocol,
 >(
