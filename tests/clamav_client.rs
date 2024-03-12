@@ -16,13 +16,14 @@ const SIZE_LIMIT_EXCEEDED_ERROR_RESPONSE: &[u8] = b"INSTREAM size limit exceeded
 
 mod lib_tests {
     use super::*;
-    use clamav_client::{Socket, Tcp};
 
-    const CLAMD_HOST_SOCKET: Socket<&str> = Socket {
-        socket_path: TEST_SOCKET_PATH,
-    };
-    const CLAMD_HOST_TCP: Tcp<&str> = Tcp {
+    const CLAMD_HOST_TCP: clamav_client::Tcp<&str> = clamav_client::Tcp {
         host_address: TEST_HOST_ADDRESS,
+    };
+
+    #[cfg(unix)]
+    const CLAMD_HOST_SOCKET: clamav_client::Socket<&str> = clamav_client::Socket {
+        socket_path: TEST_SOCKET_PATH,
     };
 
     #[test]
@@ -170,13 +171,14 @@ mod lib_tests {
 #[cfg(feature = "tokio")]
 mod tokio_tests {
     use super::*;
-    use clamav_client::tokio::{Socket, Tcp};
 
-    const CLAMD_HOST_SOCKET: Socket<&str> = Socket {
-        socket_path: TEST_SOCKET_PATH,
-    };
-    const CLAMD_HOST_TCP: Tcp<&str> = Tcp {
+    const CLAMD_HOST_TCP: clamav_client::tokio::Tcp<&str> = clamav_client::tokio::Tcp {
         host_address: TEST_HOST_ADDRESS,
+    };
+
+    #[cfg(unix)]
+    const CLAMD_HOST_SOCKET: clamav_client::tokio::Socket<&str> = clamav_client::tokio::Socket {
+        socket_path: TEST_SOCKET_PATH,
     };
 
     #[tokio::test]
@@ -322,16 +324,17 @@ mod tokio_tests {
 #[cfg(feature = "tokio-stream")]
 mod tokio_stream_tests {
     use super::*;
-    use clamav_client::tokio::{Socket, Tcp};
     use std::path::Path;
     use tokio::fs::File;
     use tokio_util::io::ReaderStream;
 
-    const CLAMD_HOST_SOCKET: Socket<&str> = Socket {
-        socket_path: TEST_SOCKET_PATH,
-    };
-    const CLAMD_HOST_TCP: Tcp<&str> = Tcp {
+    const CLAMD_HOST_TCP: clamav_client::tokio::Tcp<&str> = clamav_client::tokio::Tcp {
         host_address: TEST_HOST_ADDRESS,
+    };
+
+    #[cfg(unix)]
+    const CLAMD_HOST_SOCKET: clamav_client::tokio::Socket<&str> = clamav_client::tokio::Socket {
+        socket_path: TEST_SOCKET_PATH,
     };
 
     async fn stream_from_file<P: AsRef<Path>>(path: P) -> ReaderStream<File> {
@@ -438,14 +441,16 @@ mod tokio_stream_tests {
 #[cfg(feature = "async-std")]
 mod async_std_tests {
     use super::*;
-    use clamav_client::async_std::{Socket, Tcp};
 
-    const CLAMD_HOST_SOCKET: Socket<&str> = Socket {
-        socket_path: TEST_SOCKET_PATH,
-    };
-    const CLAMD_HOST_TCP: Tcp<&str> = Tcp {
+    const CLAMD_HOST_TCP: clamav_client::async_std::Tcp<&str> = clamav_client::async_std::Tcp {
         host_address: TEST_HOST_ADDRESS,
     };
+
+    #[cfg(unix)]
+    const CLAMD_HOST_SOCKET: clamav_client::async_std::Socket<&str> =
+        clamav_client::async_std::Socket {
+            socket_path: TEST_SOCKET_PATH,
+        };
 
     #[async_std::test]
     #[cfg(unix)]
@@ -594,14 +599,16 @@ mod async_std_stream_tests {
     use super::*;
     use async_std::{fs::File, path::Path};
     use async_std_util::io::ReaderStream;
-    use clamav_client::async_std::{Socket, Tcp};
 
-    const CLAMD_HOST_SOCKET: Socket<&str> = Socket {
-        socket_path: TEST_SOCKET_PATH,
-    };
-    const CLAMD_HOST_TCP: Tcp<&str> = Tcp {
+    const CLAMD_HOST_TCP: clamav_client::async_std::Tcp<&str> = clamav_client::async_std::Tcp {
         host_address: TEST_HOST_ADDRESS,
     };
+
+    #[cfg(unix)]
+    const CLAMD_HOST_SOCKET: clamav_client::async_std::Socket<&str> =
+        clamav_client::async_std::Socket {
+            socket_path: TEST_SOCKET_PATH,
+        };
 
     async fn stream_from_file<P: AsRef<Path>>(path: P) -> ReaderStream<File> {
         let path_str = path.as_ref().to_str().expect("Invalid path");
