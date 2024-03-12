@@ -589,6 +589,7 @@ mod async_std_tests {
     }
 }
 
+#[cfg(feature = "async-std")]
 mod async_std_stream_tests {
     use super::*;
     use async_std::{fs::File, path::Path};
