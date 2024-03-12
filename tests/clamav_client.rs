@@ -27,6 +27,7 @@ mod lib_tests {
     };
 
     #[test]
+    #[cfg(unix)]
     fn ping_socket() {
         let err_msg = format!(
             "Could not ping clamd via Unix socket at {}",
