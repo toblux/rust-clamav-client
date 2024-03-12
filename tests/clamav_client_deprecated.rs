@@ -1,3 +1,5 @@
+#![allow(deprecated)]
+
 #[cfg(unix)]
 const TEST_SOCKET_PATH: &str = "/tmp/clamd.socket";
 const TEST_HOST_ADDRESS: &str = "localhost:3310";
