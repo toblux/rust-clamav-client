@@ -114,7 +114,7 @@ async fn _scan_stream<
 #[deprecated(since = "0.5.0", note = "Use `ping` instead")]
 #[cfg(unix)]
 pub async fn ping_socket<P: AsRef<Path>>(socket_path: P) -> IoResult {
-    ping(Socket(socket_path)).await
+    ping(Socket { socket_path }).await
 }
 
 /// Scans a file for viruses using a Unix socket connection
@@ -140,7 +140,7 @@ pub async fn scan_file_socket<P: AsRef<Path>>(
     socket_path: P,
     chunk_size: Option<usize>,
 ) -> IoResult {
-    scan_file(file_path, Socket(socket_path), chunk_size).await
+    scan_file(file_path, Socket { socket_path }, chunk_size).await
 }
 
 /// Scans a data buffer for viruses using a Unix socket connection
@@ -165,7 +165,7 @@ pub async fn scan_buffer_socket<P: AsRef<Path>>(
     socket_path: P,
     chunk_size: Option<usize>,
 ) -> IoResult {
-    scan_buffer(buffer, Socket(socket_path), chunk_size).await
+    scan_buffer(buffer, Socket { socket_path }, chunk_size).await
 }
 
 /// Scans a stream for viruses using a Unix socket connection
@@ -193,7 +193,7 @@ pub async fn scan_stream_socket<
     socket_path: P,
     chunk_size: Option<usize>,
 ) -> IoResult {
-    scan_stream(input_stream, Socket(socket_path), chunk_size).await
+    scan_stream(input_stream, Socket { socket_path }, chunk_size).await
 }
 
 /// Sends a ping request to ClamAV using a TCP connection
@@ -216,7 +216,7 @@ pub async fn scan_stream_socket<
 ///
 #[deprecated(since = "0.5.0", note = "Use `ping` instead")]
 pub async fn ping_tcp<A: ToSocketAddrs>(host_address: A) -> IoResult {
-    ping(Tcp(host_address)).await
+    ping(Tcp { host_address }).await
 }
 
 /// Scans a file for viruses using a TCP connection
@@ -240,7 +240,7 @@ pub async fn scan_file_tcp<P: AsRef<Path>, A: ToSocketAddrs>(
     host_address: A,
     chunk_size: Option<usize>,
 ) -> IoResult {
-    scan_file(file_path, Tcp(host_address), chunk_size).await
+    scan_file(file_path, Tcp { host_address }, chunk_size).await
 }
 
 /// Scans a data buffer for viruses using a TCP connection
@@ -264,7 +264,7 @@ pub async fn scan_buffer_tcp<A: ToSocketAddrs>(
     host_address: A,
     chunk_size: Option<usize>,
 ) -> IoResult {
-    scan_buffer(buffer, Tcp(host_address), chunk_size).await
+    scan_buffer(buffer, Tcp { host_address }, chunk_size).await
 }
 
 /// Scans a stream for viruses using a TCP connection
@@ -291,17 +291,23 @@ pub async fn scan_stream_tcp<
     host_address: A,
     chunk_size: Option<usize>,
 ) -> IoResult {
-    scan_stream(input_stream, Tcp(host_address), chunk_size).await
+    scan_stream(input_stream, Tcp { host_address }, chunk_size).await
 }
 
-/// The address (host and port) of the ClamAV server
+/// Use a TCP connection to communicate with a ClamAV server
 #[derive(Copy, Clone)]
-pub struct Tcp<A: ToSocketAddrs>(pub A);
+pub struct Tcp<A: ToSocketAddrs> {
+    /// The address (host and port) of the ClamAV server
+    pub host_address: A,
+}
 
-/// The path to the Unix socket of the ClamAV server
+/// Use a Unix socket connection to communicate with a ClamAV server
 #[derive(Copy, Clone)]
 #[cfg(unix)]
-pub struct Socket<P: AsRef<Path>>(pub P);
+pub struct Socket<P: AsRef<Path>> {
+    /// The socket file path of the ClamAV server
+    pub socket_path: P,
+}
 
 /// The communication protocol to use
 #[async_trait(?Send)]
@@ -318,7 +324,7 @@ impl<A: ToSocketAddrs> AsyncTransportProtocol for Tcp<A> {
     type Stream = TcpStream;
 
     async fn to_stream(&self) -> io::Result<Self::Stream> {
-        TcpStream::connect(&self.0).await
+        TcpStream::connect(&self.host_address).await
     }
 }
 
@@ -328,7 +334,7 @@ impl<P: AsRef<Path>> AsyncTransportProtocol for Socket<P> {
     type Stream = UnixStream;
 
     async fn to_stream(&self) -> io::Result<Self::Stream> {
-        UnixStream::connect(&self.0).await
+        UnixStream::connect(&self.socket_path).await
     }
 }
 
@@ -350,8 +356,8 @@ impl<P: AsRef<Path>> AsyncTransportProtocol for Socket<P> {
 /// ```
 /// # #[async_std::main]
 /// # async fn main() {
-/// let transport_protocol = clamav_client::async_std::Tcp("localhost:3310");
-/// let clamd_available = match clamav_client::async_std::ping(transport_protocol).await {
+/// let clamd_tcp = clamav_client::async_std::Tcp{ host_address: "localhost:3310" };
+/// let clamd_available = match clamav_client::async_std::ping(clamd_tcp).await {
 ///     Ok(ping_response) => ping_response == clamav_client::PONG,
 ///     Err(_) => false,
 /// };
@@ -383,8 +389,8 @@ pub async fn ping<T: AsyncTransportProtocol>(transport_protocol: T) -> IoResult 
 /// ```
 /// # #[async_std::main]
 /// # async fn main() {
-/// let transport_protocol = clamav_client::async_std::Tcp("localhost:3310");
-/// let version = clamav_client::async_std::get_version(transport_protocol).await.unwrap();
+/// let clamd_tcp = clamav_client::async_std::Tcp{ host_address: "localhost:3310" };
+/// let version = clamav_client::async_std::get_version(clamd_tcp).await.unwrap();
 /// # assert!(version.starts_with(b"ClamAV"));
 /// # }
 /// ```

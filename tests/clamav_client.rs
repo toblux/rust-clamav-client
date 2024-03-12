@@ -18,14 +18,18 @@ mod lib_tests {
     use super::*;
     use clamav_client::{Socket, Tcp};
 
-    const CLAMD_HOST_SOCKET: Socket<&str> = Socket(TEST_SOCKET_PATH);
-    const CLAMD_HOST_TCP: Tcp<&str> = Tcp(TEST_HOST_ADDRESS);
+    const CLAMD_HOST_SOCKET: Socket<&str> = Socket {
+        socket_path: TEST_SOCKET_PATH,
+    };
+    const CLAMD_HOST_TCP: Tcp<&str> = Tcp {
+        host_address: TEST_HOST_ADDRESS,
+    };
 
     #[test]
     fn ping_socket() {
         let err_msg = format!(
             "Could not ping clamd via Unix socket at {}",
-            CLAMD_HOST_SOCKET.0
+            CLAMD_HOST_SOCKET.socket_path
         );
         let response = clamav_client::ping(CLAMD_HOST_SOCKET).expect(&err_msg);
         assert_eq!(&response, clamav_client::PONG);
@@ -36,7 +40,7 @@ mod lib_tests {
     fn get_version_socket() {
         let err_msg = format!(
             "Could not get ClamAV version via Unix socket at {}",
-            CLAMD_HOST_SOCKET.0
+            CLAMD_HOST_SOCKET.socket_path
         );
         let response = clamav_client::get_version(CLAMD_HOST_SOCKET).expect(&err_msg);
         assert!(&response.starts_with(b"ClamAV"));
@@ -47,7 +51,7 @@ mod lib_tests {
     fn scan_socket_infected_file() {
         let err_msg = format!(
             "Could not scan test file {} via socket at {}",
-            EICAR_TEST_FILE_PATH, CLAMD_HOST_SOCKET.0
+            EICAR_TEST_FILE_PATH, CLAMD_HOST_SOCKET.socket_path
         );
         let response = clamav_client::scan_file(EICAR_TEST_FILE_PATH, CLAMD_HOST_SOCKET, None)
             .expect(&err_msg);
@@ -60,7 +64,7 @@ mod lib_tests {
     fn scan_socket_infected_buffer() {
         let err_msg = format!(
             "Could not scan EICAR test string via socket at {}",
-            CLAMD_HOST_SOCKET.0
+            CLAMD_HOST_SOCKET.socket_path
         );
         let buffer = include_bytes!("data/eicar.txt");
         let response = clamav_client::scan_buffer(buffer, CLAMD_HOST_SOCKET, None).expect(&err_msg);
@@ -73,7 +77,7 @@ mod lib_tests {
     fn scan_socket_clean_file() {
         let err_msg = format!(
             "Could not scan test file {} via socket at {}",
-            CLEAN_TEST_FILE_PATH, CLAMD_HOST_SOCKET.0
+            CLEAN_TEST_FILE_PATH, CLAMD_HOST_SOCKET.socket_path
         );
         let response = clamav_client::scan_file(CLEAN_TEST_FILE_PATH, CLAMD_HOST_SOCKET, None)
             .expect(&err_msg);
@@ -86,7 +90,7 @@ mod lib_tests {
     fn scan_socket_oversized_file() {
         let err_msg = format!(
             "Could not scan test file {} via socket at {}",
-            OVERSIZED_TEST_FILE_PATH, CLAMD_HOST_SOCKET.0
+            OVERSIZED_TEST_FILE_PATH, CLAMD_HOST_SOCKET.socket_path
         );
         let response = clamav_client::scan_file(OVERSIZED_TEST_FILE_PATH, CLAMD_HOST_SOCKET, None)
             .expect(&err_msg);
@@ -96,7 +100,10 @@ mod lib_tests {
 
     #[test]
     fn ping_tcp() {
-        let err_msg = format!("Could not ping clamd via TCP at {}", CLAMD_HOST_TCP.0);
+        let err_msg = format!(
+            "Could not ping clamd via TCP at {}",
+            CLAMD_HOST_TCP.host_address
+        );
         let response = clamav_client::ping(CLAMD_HOST_TCP).expect(&err_msg);
         assert_eq!(&response, clamav_client::PONG);
     }
@@ -105,7 +112,7 @@ mod lib_tests {
     fn get_version_tcp() {
         let err_msg = format!(
             "Could not get ClamAV version via TCP at {}",
-            CLAMD_HOST_TCP.0
+            CLAMD_HOST_TCP.host_address
         );
         let response = clamav_client::get_version(CLAMD_HOST_TCP).expect(&err_msg);
         assert!(&response.starts_with(b"ClamAV"));
@@ -115,7 +122,7 @@ mod lib_tests {
     fn scan_tcp_infected_file() {
         let err_msg = format!(
             "Could not scan test file {} via TCP at {}",
-            EICAR_TEST_FILE_PATH, CLAMD_HOST_TCP.0
+            EICAR_TEST_FILE_PATH, CLAMD_HOST_TCP.host_address
         );
         let response =
             clamav_client::scan_file(EICAR_TEST_FILE_PATH, CLAMD_HOST_TCP, None).expect(&err_msg);
@@ -127,7 +134,7 @@ mod lib_tests {
     fn scan_tcp_clean_file() {
         let err_msg = format!(
             "Could not scan test file {} via TCP at {}",
-            CLEAN_TEST_FILE_PATH, CLAMD_HOST_TCP.0
+            CLEAN_TEST_FILE_PATH, CLAMD_HOST_TCP.host_address
         );
         let response =
             clamav_client::scan_file(CLEAN_TEST_FILE_PATH, CLAMD_HOST_TCP, None).expect(&err_msg);
@@ -139,7 +146,7 @@ mod lib_tests {
     fn scan_tcp_infected_buffer() {
         let err_msg = format!(
             "Could not scan EICAR test string via TCP at {}",
-            CLAMD_HOST_TCP.0
+            CLAMD_HOST_TCP.host_address
         );
         let buffer = include_bytes!("data/eicar.txt");
         let response = clamav_client::scan_buffer(buffer, CLAMD_HOST_TCP, None).expect(&err_msg);
@@ -151,7 +158,7 @@ mod lib_tests {
     fn scan_tcp_oversized_file() {
         let err_msg = format!(
             "Could not scan test file {} via TCP at {}",
-            OVERSIZED_TEST_FILE_PATH, CLAMD_HOST_TCP.0
+            OVERSIZED_TEST_FILE_PATH, CLAMD_HOST_TCP.host_address
         );
         let response = clamav_client::scan_file(OVERSIZED_TEST_FILE_PATH, CLAMD_HOST_TCP, None)
             .expect(&err_msg);
@@ -165,15 +172,19 @@ mod tokio_tests {
     use super::*;
     use clamav_client::tokio::{Socket, Tcp};
 
-    const CLAMD_HOST_SOCKET: Socket<&str> = Socket(TEST_SOCKET_PATH);
-    const CLAMD_HOST_TCP: Tcp<&str> = Tcp(TEST_HOST_ADDRESS);
+    const CLAMD_HOST_SOCKET: Socket<&str> = Socket {
+        socket_path: TEST_SOCKET_PATH,
+    };
+    const CLAMD_HOST_TCP: Tcp<&str> = Tcp {
+        host_address: TEST_HOST_ADDRESS,
+    };
 
     #[tokio::test]
     #[cfg(unix)]
     async fn async_tokio_ping_socket() {
         let err_msg = format!(
             "Could not ping clamd via Unix socket at {}",
-            CLAMD_HOST_SOCKET.0
+            CLAMD_HOST_SOCKET.socket_path
         );
         let response = clamav_client::tokio::ping(CLAMD_HOST_SOCKET)
             .await
@@ -186,7 +197,7 @@ mod tokio_tests {
     async fn async_tokio_scan_socket_infected_file() {
         let err_msg = format!(
             "Could not scan test file {} via socket at {}",
-            EICAR_TEST_FILE_PATH, CLAMD_HOST_SOCKET.0
+            EICAR_TEST_FILE_PATH, CLAMD_HOST_SOCKET.socket_path
         );
         let response =
             clamav_client::tokio::scan_file(EICAR_TEST_FILE_PATH, CLAMD_HOST_SOCKET, None)
@@ -201,7 +212,7 @@ mod tokio_tests {
     async fn async_tokio_scan_socket_infected_buffer() {
         let err_msg = format!(
             "Could not scan EICAR test string via socket at {}",
-            CLAMD_HOST_SOCKET.0
+            CLAMD_HOST_SOCKET.socket_path
         );
         let buffer = include_bytes!("data/eicar.txt");
         let response = clamav_client::tokio::scan_buffer(buffer, CLAMD_HOST_SOCKET, None)
@@ -216,7 +227,7 @@ mod tokio_tests {
     async fn async_tokio_scan_socket_clean_file() {
         let err_msg = format!(
             "Could not scan test file {} via socket at {}",
-            CLEAN_TEST_FILE_PATH, CLAMD_HOST_SOCKET.0
+            CLEAN_TEST_FILE_PATH, CLAMD_HOST_SOCKET.socket_path
         );
         let response =
             clamav_client::tokio::scan_file(CLEAN_TEST_FILE_PATH, CLAMD_HOST_SOCKET, None)
@@ -231,7 +242,7 @@ mod tokio_tests {
     async fn async_tokio_scan_socket_oversized_file() {
         let err_msg = format!(
             "Could not scan test file {} via socket at {}",
-            OVERSIZED_TEST_FILE_PATH, CLAMD_HOST_SOCKET.0
+            OVERSIZED_TEST_FILE_PATH, CLAMD_HOST_SOCKET.socket_path
         );
         let response =
             clamav_client::tokio::scan_file(OVERSIZED_TEST_FILE_PATH, CLAMD_HOST_SOCKET, None)
@@ -243,7 +254,10 @@ mod tokio_tests {
 
     #[tokio::test]
     async fn async_tokio_ping_tcp() {
-        let err_msg = format!("Could not ping clamd via TCP at {}", CLAMD_HOST_TCP.0);
+        let err_msg = format!(
+            "Could not ping clamd via TCP at {}",
+            CLAMD_HOST_TCP.host_address
+        );
         let response = clamav_client::tokio::ping(CLAMD_HOST_TCP)
             .await
             .expect(&err_msg);
@@ -254,7 +268,7 @@ mod tokio_tests {
     async fn async_tokio_scan_tcp_infected_file() {
         let err_msg = format!(
             "Could not scan test file {} via TCP at {}",
-            EICAR_TEST_FILE_PATH, CLAMD_HOST_TCP.0
+            EICAR_TEST_FILE_PATH, CLAMD_HOST_TCP.host_address
         );
         let response = clamav_client::tokio::scan_file(EICAR_TEST_FILE_PATH, CLAMD_HOST_TCP, None)
             .await
@@ -267,7 +281,7 @@ mod tokio_tests {
     async fn async_tokio_scan_tcp_infected_buffer() {
         let err_msg = format!(
             "Could not scan EICAR test string via TCP at {}",
-            CLAMD_HOST_TCP.0
+            CLAMD_HOST_TCP.host_address
         );
         let buffer = include_bytes!("data/eicar.txt");
         let response = clamav_client::tokio::scan_buffer(buffer, CLAMD_HOST_TCP, None)
@@ -281,7 +295,7 @@ mod tokio_tests {
     async fn async_tokio_scan_tcp_clean_file() {
         let err_msg = format!(
             "Could not scan test file {} via TCP at {}",
-            CLEAN_TEST_FILE_PATH, CLAMD_HOST_TCP.0
+            CLEAN_TEST_FILE_PATH, CLAMD_HOST_TCP.host_address
         );
         let response = clamav_client::tokio::scan_file(CLEAN_TEST_FILE_PATH, CLAMD_HOST_TCP, None)
             .await
@@ -294,7 +308,7 @@ mod tokio_tests {
     async fn async_tokio_scan_tcp_oversized_file() {
         let err_msg = format!(
             "Could not scan test file {} via TCP at {}",
-            OVERSIZED_TEST_FILE_PATH, CLAMD_HOST_TCP.0
+            OVERSIZED_TEST_FILE_PATH, CLAMD_HOST_TCP.host_address
         );
         let response =
             clamav_client::tokio::scan_file(OVERSIZED_TEST_FILE_PATH, CLAMD_HOST_TCP, None)
@@ -313,8 +327,12 @@ mod tokio_stream_tests {
     use tokio::fs::File;
     use tokio_util::io::ReaderStream;
 
-    const CLAMD_HOST_SOCKET: Socket<&str> = Socket(TEST_SOCKET_PATH);
-    const CLAMD_HOST_TCP: Tcp<&str> = Tcp(TEST_HOST_ADDRESS);
+    const CLAMD_HOST_SOCKET: Socket<&str> = Socket {
+        socket_path: TEST_SOCKET_PATH,
+    };
+    const CLAMD_HOST_TCP: Tcp<&str> = Tcp {
+        host_address: TEST_HOST_ADDRESS,
+    };
 
     async fn stream_from_file<P: AsRef<Path>>(path: P) -> ReaderStream<File> {
         let path_str = path.as_ref().to_str().expect("Invalid path");
@@ -330,7 +348,7 @@ mod tokio_stream_tests {
 
         let err_msg = format!(
             "Could not scan test file {} via socket at {}",
-            EICAR_TEST_FILE_PATH, CLAMD_HOST_SOCKET.0
+            EICAR_TEST_FILE_PATH, CLAMD_HOST_SOCKET.socket_path
         );
         let response = clamav_client::tokio::scan_stream(stream, CLAMD_HOST_SOCKET, None)
             .await
@@ -346,7 +364,7 @@ mod tokio_stream_tests {
 
         let err_msg = format!(
             "Could not scan test file {} via socket at {}",
-            CLEAN_TEST_FILE_PATH, CLAMD_HOST_SOCKET.0
+            CLEAN_TEST_FILE_PATH, CLAMD_HOST_SOCKET.socket_path
         );
         let response = clamav_client::tokio::scan_stream(stream, CLAMD_HOST_SOCKET, None)
             .await
@@ -362,7 +380,7 @@ mod tokio_stream_tests {
 
         let err_msg = format!(
             "Could not scan test file {} via socket at {}",
-            OVERSIZED_TEST_FILE_PATH, CLAMD_HOST_SOCKET.0
+            OVERSIZED_TEST_FILE_PATH, CLAMD_HOST_SOCKET.socket_path
         );
         let response = clamav_client::tokio::scan_stream(stream, CLAMD_HOST_SOCKET, None)
             .await
@@ -377,7 +395,7 @@ mod tokio_stream_tests {
 
         let err_msg = format!(
             "Could not scan test file {} via TCP at {}",
-            EICAR_TEST_FILE_PATH, CLAMD_HOST_TCP.0
+            EICAR_TEST_FILE_PATH, CLAMD_HOST_TCP.host_address
         );
         let response = clamav_client::tokio::scan_stream(stream, CLAMD_HOST_TCP, None)
             .await
@@ -392,7 +410,7 @@ mod tokio_stream_tests {
 
         let err_msg = format!(
             "Could not scan test file {} via TCP at {}",
-            CLEAN_TEST_FILE_PATH, CLAMD_HOST_TCP.0
+            CLEAN_TEST_FILE_PATH, CLAMD_HOST_TCP.host_address
         );
         let response = clamav_client::tokio::scan_stream(stream, CLAMD_HOST_TCP, None)
             .await
@@ -407,7 +425,7 @@ mod tokio_stream_tests {
 
         let err_msg = format!(
             "Could not scan test file {} via TCP at {}",
-            OVERSIZED_TEST_FILE_PATH, CLAMD_HOST_TCP.0
+            OVERSIZED_TEST_FILE_PATH, CLAMD_HOST_TCP.host_address
         );
         let response = clamav_client::tokio::scan_stream(stream, CLAMD_HOST_TCP, None)
             .await
@@ -422,15 +440,19 @@ mod async_std_tests {
     use super::*;
     use clamav_client::async_std::{Socket, Tcp};
 
-    const CLAMD_HOST_SOCKET: Socket<&str> = Socket(TEST_SOCKET_PATH);
-    const CLAMD_HOST_TCP: Tcp<&str> = Tcp(TEST_HOST_ADDRESS);
+    const CLAMD_HOST_SOCKET: Socket<&str> = Socket {
+        socket_path: TEST_SOCKET_PATH,
+    };
+    const CLAMD_HOST_TCP: Tcp<&str> = Tcp {
+        host_address: TEST_HOST_ADDRESS,
+    };
 
     #[async_std::test]
     #[cfg(unix)]
     async fn async_std_ping_socket() {
         let err_msg = format!(
             "Could not ping clamd via Unix socket at {}",
-            CLAMD_HOST_SOCKET.0
+            CLAMD_HOST_SOCKET.socket_path
         );
         let response = clamav_client::async_std::ping(CLAMD_HOST_SOCKET)
             .await
@@ -443,7 +465,7 @@ mod async_std_tests {
     async fn async_std_scan_socket_infected_file() {
         let err_msg = format!(
             "Could not scan test file {} via socket at {}",
-            EICAR_TEST_FILE_PATH, CLAMD_HOST_SOCKET.0
+            EICAR_TEST_FILE_PATH, CLAMD_HOST_SOCKET.socket_path
         );
         let response =
             clamav_client::async_std::scan_file(EICAR_TEST_FILE_PATH, CLAMD_HOST_SOCKET, None)
@@ -458,7 +480,7 @@ mod async_std_tests {
     async fn async_std_scan_socket_infected_buffer() {
         let err_msg = format!(
             "Could not scan EICAR test string via socket at {}",
-            CLAMD_HOST_SOCKET.0
+            CLAMD_HOST_SOCKET.socket_path
         );
         let buffer = include_bytes!("data/eicar.txt");
         let response = clamav_client::async_std::scan_buffer(buffer, CLAMD_HOST_SOCKET, None)
@@ -473,7 +495,7 @@ mod async_std_tests {
     async fn async_std_scan_socket_clean_file() {
         let err_msg = format!(
             "Could not scan test file {} via socket at {}",
-            CLEAN_TEST_FILE_PATH, CLAMD_HOST_SOCKET.0
+            CLEAN_TEST_FILE_PATH, CLAMD_HOST_SOCKET.socket_path
         );
         let response =
             clamav_client::async_std::scan_file(CLEAN_TEST_FILE_PATH, CLAMD_HOST_SOCKET, None)
@@ -488,7 +510,7 @@ mod async_std_tests {
     async fn async_std_scan_socket_oversized_file() {
         let err_msg = format!(
             "Could not scan test file {} via socket at {}",
-            OVERSIZED_TEST_FILE_PATH, CLAMD_HOST_SOCKET.0
+            OVERSIZED_TEST_FILE_PATH, CLAMD_HOST_SOCKET.socket_path
         );
         let response =
             clamav_client::async_std::scan_file(OVERSIZED_TEST_FILE_PATH, CLAMD_HOST_SOCKET, None)
@@ -500,7 +522,10 @@ mod async_std_tests {
 
     #[async_std::test]
     async fn async_std_ping_tcp() {
-        let err_msg = format!("Could not ping clamd via TCP at {}", CLAMD_HOST_TCP.0);
+        let err_msg = format!(
+            "Could not ping clamd via TCP at {}",
+            CLAMD_HOST_TCP.host_address
+        );
         let response = clamav_client::async_std::ping(CLAMD_HOST_TCP)
             .await
             .expect(&err_msg);
@@ -511,7 +536,7 @@ mod async_std_tests {
     async fn async_std_scan_tcp_infected_file() {
         let err_msg = format!(
             "Could not scan test file {} via TCP at {}",
-            EICAR_TEST_FILE_PATH, CLAMD_HOST_TCP.0
+            EICAR_TEST_FILE_PATH, CLAMD_HOST_TCP.host_address
         );
         let response =
             clamav_client::async_std::scan_file(EICAR_TEST_FILE_PATH, CLAMD_HOST_TCP, None)
@@ -525,7 +550,7 @@ mod async_std_tests {
     async fn async_std_scan_tcp_infected_buffer() {
         let err_msg = format!(
             "Could not scan EICAR test string via TCP at {}",
-            CLAMD_HOST_TCP.0
+            CLAMD_HOST_TCP.host_address
         );
         let buffer = include_bytes!("data/eicar.txt");
         let response = clamav_client::async_std::scan_buffer(buffer, CLAMD_HOST_TCP, None)
@@ -539,7 +564,7 @@ mod async_std_tests {
     async fn async_std_scan_tcp_clean_file() {
         let err_msg = format!(
             "Could not scan test file {} via TCP at {}",
-            CLEAN_TEST_FILE_PATH, CLAMD_HOST_TCP.0
+            CLEAN_TEST_FILE_PATH, CLAMD_HOST_TCP.host_address
         );
         let response =
             clamav_client::async_std::scan_file(CLEAN_TEST_FILE_PATH, CLAMD_HOST_TCP, None)
@@ -553,7 +578,7 @@ mod async_std_tests {
     async fn async_std_scan_tcp_oversized_file() {
         let err_msg = format!(
             "Could not scan test file {} via TCP at {}",
-            OVERSIZED_TEST_FILE_PATH, CLAMD_HOST_TCP.0
+            OVERSIZED_TEST_FILE_PATH, CLAMD_HOST_TCP.host_address
         );
         let response =
             clamav_client::async_std::scan_file(OVERSIZED_TEST_FILE_PATH, CLAMD_HOST_TCP, None)
@@ -570,8 +595,12 @@ mod async_std_stream_tests {
     use async_std_util::io::ReaderStream;
     use clamav_client::async_std::{Socket, Tcp};
 
-    const CLAMD_HOST_SOCKET: Socket<&str> = Socket(TEST_SOCKET_PATH);
-    const CLAMD_HOST_TCP: Tcp<&str> = Tcp(TEST_HOST_ADDRESS);
+    const CLAMD_HOST_SOCKET: Socket<&str> = Socket {
+        socket_path: TEST_SOCKET_PATH,
+    };
+    const CLAMD_HOST_TCP: Tcp<&str> = Tcp {
+        host_address: TEST_HOST_ADDRESS,
+    };
 
     async fn stream_from_file<P: AsRef<Path>>(path: P) -> ReaderStream<File> {
         let path_str = path.as_ref().to_str().expect("Invalid path");
@@ -586,7 +615,7 @@ mod async_std_stream_tests {
         let stream = stream_from_file(EICAR_TEST_FILE_PATH).await;
         let err_msg = format!(
             "Could not scan test file {} via socket at {}",
-            EICAR_TEST_FILE_PATH, CLAMD_HOST_SOCKET.0
+            EICAR_TEST_FILE_PATH, CLAMD_HOST_SOCKET.socket_path
         );
         let response = clamav_client::async_std::scan_stream(stream, CLAMD_HOST_SOCKET, None)
             .await
@@ -601,7 +630,7 @@ mod async_std_stream_tests {
         let stream = stream_from_file(CLEAN_TEST_FILE_PATH).await;
         let err_msg = format!(
             "Could not scan test file {} via socket at {}",
-            CLEAN_TEST_FILE_PATH, CLAMD_HOST_SOCKET.0
+            CLEAN_TEST_FILE_PATH, CLAMD_HOST_SOCKET.socket_path
         );
         let response = clamav_client::async_std::scan_stream(stream, CLAMD_HOST_SOCKET, None)
             .await
@@ -616,7 +645,7 @@ mod async_std_stream_tests {
         let stream = stream_from_file(OVERSIZED_TEST_FILE_PATH).await;
         let err_msg = format!(
             "Could not scan test file {} via socket at {}",
-            OVERSIZED_TEST_FILE_PATH, CLAMD_HOST_SOCKET.0
+            OVERSIZED_TEST_FILE_PATH, CLAMD_HOST_SOCKET.socket_path
         );
         let response = clamav_client::async_std::scan_stream(stream, CLAMD_HOST_SOCKET, None)
             .await
@@ -630,7 +659,7 @@ mod async_std_stream_tests {
         let stream = stream_from_file(EICAR_TEST_FILE_PATH).await;
         let err_msg = format!(
             "Could not scan test file {} via TCP at {}",
-            EICAR_TEST_FILE_PATH, CLAMD_HOST_TCP.0
+            EICAR_TEST_FILE_PATH, CLAMD_HOST_TCP.host_address
         );
         let response = clamav_client::async_std::scan_stream(stream, CLAMD_HOST_TCP, None)
             .await
@@ -644,7 +673,7 @@ mod async_std_stream_tests {
         let stream = stream_from_file(CLEAN_TEST_FILE_PATH).await;
         let err_msg = format!(
             "Could not scan test file {} via TCP at {}",
-            CLEAN_TEST_FILE_PATH, CLAMD_HOST_TCP.0
+            CLEAN_TEST_FILE_PATH, CLAMD_HOST_TCP.host_address
         );
         let response = clamav_client::async_std::scan_stream(stream, CLAMD_HOST_TCP, None)
             .await
@@ -658,7 +687,7 @@ mod async_std_stream_tests {
         let stream = stream_from_file(OVERSIZED_TEST_FILE_PATH).await;
         let err_msg = format!(
             "Could not scan test file {} via TCP at {}",
-            OVERSIZED_TEST_FILE_PATH, CLAMD_HOST_TCP.0
+            OVERSIZED_TEST_FILE_PATH, CLAMD_HOST_TCP.host_address
         );
         let response = clamav_client::async_std::scan_stream(stream, CLAMD_HOST_TCP, None)
             .await

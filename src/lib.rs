@@ -118,7 +118,7 @@ fn scan<R: Read, RW: Read + Write>(
 #[deprecated(since = "0.5.0", note = "Use `ping` instead")]
 #[cfg(unix)]
 pub fn ping_socket<P: AsRef<Path>>(socket_path: P) -> IoResult {
-    ping(Socket(socket_path))
+    ping(Socket { socket_path })
 }
 
 /// Gets the version number from ClamAV using a Unix socket connection
@@ -145,7 +145,7 @@ pub fn ping_socket<P: AsRef<Path>>(socket_path: P) -> IoResult {
 #[deprecated(since = "0.5.0", note = "Use `get_version` instead")]
 #[cfg(unix)]
 pub fn get_version_socket<P: AsRef<Path>>(socket_path: P) -> IoResult {
-    get_version(Socket(socket_path))
+    get_version(Socket { socket_path })
 }
 
 /// Scans a file for viruses using a Unix socket connection
@@ -171,7 +171,7 @@ pub fn scan_file_socket<P: AsRef<Path>>(
     socket_path: P,
     chunk_size: Option<usize>,
 ) -> IoResult {
-    scan_file(file_path, Socket(socket_path), chunk_size)
+    scan_file(file_path, Socket { socket_path }, chunk_size)
 }
 
 /// Scans a data buffer for viruses using a Unix socket connection
@@ -196,7 +196,7 @@ pub fn scan_buffer_socket<P: AsRef<Path>>(
     socket_path: P,
     chunk_size: Option<usize>,
 ) -> IoResult {
-    scan_buffer(buffer, Socket(socket_path), chunk_size)
+    scan_buffer(buffer, Socket { socket_path }, chunk_size)
 }
 
 /// Sends a ping request to ClamAV using a TCP connection
@@ -225,7 +225,7 @@ pub fn scan_buffer_socket<P: AsRef<Path>>(
 ///
 #[deprecated(since = "0.5.0", note = "Use `ping` instead")]
 pub fn ping_tcp<A: ToSocketAddrs>(host_address: A) -> IoResult {
-    ping(Tcp(host_address))
+    ping(Tcp { host_address })
 }
 
 /// Gets the version number from ClamAV using a TCP connection
@@ -251,7 +251,7 @@ pub fn ping_tcp<A: ToSocketAddrs>(host_address: A) -> IoResult {
 ///
 #[deprecated(since = "0.5.0", note = "Use `get_version` instead")]
 pub fn get_version_tcp<A: ToSocketAddrs>(host_address: A) -> IoResult {
-    get_version(Tcp(host_address))
+    get_version(Tcp { host_address })
 }
 
 /// Scans a file for viruses using a TCP connection
@@ -275,7 +275,7 @@ pub fn scan_file_tcp<P: AsRef<Path>, A: ToSocketAddrs>(
     host_address: A,
     chunk_size: Option<usize>,
 ) -> IoResult {
-    scan_file(file_path, Tcp(host_address), chunk_size)
+    scan_file(file_path, Tcp { host_address }, chunk_size)
 }
 
 /// Scans a data buffer for viruses using a TCP connection
@@ -299,7 +299,7 @@ pub fn scan_buffer_tcp<A: ToSocketAddrs>(
     host_address: A,
     chunk_size: Option<usize>,
 ) -> IoResult {
-    scan_buffer(buffer, Tcp(host_address), chunk_size)
+    scan_buffer(buffer, Tcp { host_address }, chunk_size)
 }
 
 /// Checks whether the ClamAV response indicates that the scanned content is
@@ -322,6 +322,21 @@ pub fn clean(response: &[u8]) -> Utf8Result {
     Ok(response.contains("OK") && !response.contains("FOUND"))
 }
 
+/// Use a TCP connection to communicate with a ClamAV server
+#[derive(Copy, Clone)]
+pub struct Tcp<A: ToSocketAddrs> {
+    /// The address (host and port) of the ClamAV server
+    pub host_address: A,
+}
+
+/// Use a Unix socket connection to communicate with a ClamAV server
+#[derive(Copy, Clone)]
+#[cfg(unix)]
+pub struct Socket<P: AsRef<Path>> {
+    /// The socket file path of the ClamAV server
+    pub socket_path: P,
+}
+
 /// The communication protocol to use
 pub trait TransportProtocol {
     /// Bidirectional stream
@@ -331,20 +346,11 @@ pub trait TransportProtocol {
     fn to_stream(&self) -> io::Result<Self::Stream>;
 }
 
-/// The address (host and port) of the ClamAV server
-#[derive(Copy, Clone)]
-pub struct Tcp<A: ToSocketAddrs>(pub A);
-
-/// The path to the Unix socket of the ClamAV server
-#[derive(Copy, Clone)]
-#[cfg(unix)]
-pub struct Socket<P: AsRef<Path>>(pub P);
-
 impl<A: ToSocketAddrs> TransportProtocol for Tcp<A> {
     type Stream = TcpStream;
 
     fn to_stream(&self) -> io::Result<Self::Stream> {
-        TcpStream::connect(&self.0)
+        TcpStream::connect(&self.host_address)
     }
 }
 
@@ -353,7 +359,7 @@ impl<P: AsRef<Path>> TransportProtocol for Socket<P> {
     type Stream = UnixStream;
 
     fn to_stream(&self) -> io::Result<Self::Stream> {
-        UnixStream::connect(&self.0)
+        UnixStream::connect(&self.socket_path)
     }
 }
 
@@ -373,8 +379,8 @@ impl<P: AsRef<Path>> TransportProtocol for Socket<P> {
 /// # Example
 ///
 /// ```
-/// let transport_protocol = clamav_client::Tcp("localhost:3310");
-/// let clamd_available = match clamav_client::ping(transport_protocol) {
+/// let clamd_tcp = clamav_client::Tcp{ host_address: "localhost:3310" };
+/// let clamd_available = match clamav_client::ping(clamd_tcp) {
 ///     Ok(ping_response) => ping_response == clamav_client::PONG,
 ///     Err(_) => false,
 /// };
@@ -403,8 +409,8 @@ pub fn ping<T: TransportProtocol>(transport_protocol: T) -> IoResult {
 /// # Example
 ///
 /// ```
-/// let transport_protocol = clamav_client::Tcp("localhost:3310");
-/// let version = clamav_client::get_version(transport_protocol).unwrap();
+/// let clamd_tcp = clamav_client::Tcp{ host_address: "localhost:3310" };
+/// let version = clamav_client::get_version(clamd_tcp).unwrap();
 /// # assert!(version.starts_with(b"ClamAV"));
 /// ```
 ///
