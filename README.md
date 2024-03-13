@@ -38,6 +38,28 @@ Support for `async-std` is also available by enabling the `async-std` feature:
 clamav-client = { version = "0.5.0", features = ["async-std"] }
 ```
 
+## Migrations
+
+### Migrate to 0.5.0
+
+The `*_socket` and `*_tcp` functions have been deprecated in favor of more general functions with the same name, but without the suffixes. These updated functions, such as `ping`, `scan_buffer`, and `scan_file`, now have the connection type (TCP or Unix socket) as a parameter, effectively replacing the `host_address` and `socket_path` parameters.
+
+For example,
+
+```rust
+let clamd_host_address = "localhost:3310";
+let result = clamav_client::scan_file_tcp("README.md", clamd_host_address, None);
+assert!(result.is_ok());
+```
+
+becomes:
+
+```rust
+let clamd_tcp = clamav_client::Tcp{ host_address: "localhost:3310" };
+let result = clamav_client::scan_file("README.md", clamd_tcp, None);
+assert!(result.is_ok());
+```
+
 ## Examples
 
 ### Usage

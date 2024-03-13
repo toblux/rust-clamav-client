@@ -311,29 +311,29 @@ pub struct Socket<P: AsRef<Path>> {
 
 /// The communication protocol to use
 #[async_trait(?Send)]
-pub trait AsyncTransportProtocol {
+pub trait TransportProtocol {
     /// Bidirectional stream
     type Stream: ReadExt + WriteExt + Unpin;
 
     /// Converts the protocol instance into the corresponding stream
-    async fn to_stream(&self) -> io::Result<Self::Stream>;
+    async fn connect(&self) -> io::Result<Self::Stream>;
 }
 
 #[async_trait(?Send)]
-impl<A: ToSocketAddrs> AsyncTransportProtocol for Tcp<A> {
+impl<A: ToSocketAddrs> TransportProtocol for Tcp<A> {
     type Stream = TcpStream;
 
-    async fn to_stream(&self) -> io::Result<Self::Stream> {
+    async fn connect(&self) -> io::Result<Self::Stream> {
         TcpStream::connect(&self.host_address).await
     }
 }
 
 #[async_trait(?Send)]
 #[cfg(unix)]
-impl<P: AsRef<Path>> AsyncTransportProtocol for Socket<P> {
+impl<P: AsRef<Path>> TransportProtocol for Socket<P> {
     type Stream = UnixStream;
 
-    async fn to_stream(&self) -> io::Result<Self::Stream> {
+    async fn connect(&self) -> io::Result<Self::Stream> {
         UnixStream::connect(&self.socket_path).await
     }
 }
@@ -345,7 +345,7 @@ impl<P: AsRef<Path>> AsyncTransportProtocol for Socket<P> {
 ///
 /// # Arguments
 ///
-/// * `transport_protocol`: The protocol to use (either TCP or a Unix socket connection)
+/// * `connection`: The protocol to use (either TCP or a Unix socket connection)
 ///
 /// # Returns
 ///
@@ -365,8 +365,8 @@ impl<P: AsRef<Path>> AsyncTransportProtocol for Socket<P> {
 /// # }
 /// ```
 ///
-pub async fn ping<T: AsyncTransportProtocol>(transport_protocol: T) -> IoResult {
-    let stream = transport_protocol.to_stream().await?;
+pub async fn ping<T: TransportProtocol>(connection: T) -> IoResult {
+    let stream = connection.connect().await?;
     send_command(stream, PING, Some(PONG.len())).await
 }
 
@@ -378,7 +378,7 @@ pub async fn ping<T: AsyncTransportProtocol>(transport_protocol: T) -> IoResult 
 ///
 /// # Arguments
 ///
-/// * `transport_protocol`: The protocol to use (either TCP or a Unix socket connection)
+/// * `connection`: The protocol to use (either TCP or a Unix socket connection)
 ///
 /// # Returns
 ///
@@ -395,8 +395,8 @@ pub async fn ping<T: AsyncTransportProtocol>(transport_protocol: T) -> IoResult 
 /// # }
 /// ```
 ///
-pub async fn get_version<T: AsyncTransportProtocol>(transport_protocol: T) -> IoResult {
-    let stream = transport_protocol.to_stream().await?;
+pub async fn get_version<T: TransportProtocol>(connection: T) -> IoResult {
+    let stream = connection.connect().await?;
     send_command(stream, VERSION, None).await
 }
 
@@ -408,20 +408,20 @@ pub async fn get_version<T: AsyncTransportProtocol>(transport_protocol: T) -> Io
 /// # Arguments
 ///
 /// * `file_path`: The path to the file to be scanned
-/// * `transport_protocol`: The protocol to use (either TCP or a Unix socket connection)
+/// * `connection`: The protocol to use (either TCP or a Unix socket connection)
 /// * `chunk_size`: An optional chunk size for reading data. If [`None`], a default chunk size is used
 ///
 /// # Returns
 ///
 /// An [`IoResult`] containing the server's response as a vector of bytes
 ///
-pub async fn scan_file<P: AsRef<Path>, T: AsyncTransportProtocol>(
+pub async fn scan_file<P: AsRef<Path>, T: TransportProtocol>(
     file_path: P,
-    transport_protocol: T,
+    connection: T,
     chunk_size: Option<usize>,
 ) -> IoResult {
     let file = File::open(file_path).await?;
-    let stream = transport_protocol.to_stream().await?;
+    let stream = connection.connect().await?;
     scan(file, chunk_size, stream).await
 }
 
@@ -432,19 +432,19 @@ pub async fn scan_file<P: AsRef<Path>, T: AsyncTransportProtocol>(
 /// # Arguments
 ///
 /// * `buffer`: The data to be scanned
-/// * `transport_protocol`: The protocol to use (either TCP or a Unix socket connection)
+/// * `connection`: The protocol to use (either TCP or a Unix socket connection)
 /// * `chunk_size`: An optional chunk size for reading data. If [`None`], a default chunk size is used
 ///
 /// # Returns
 ///
 /// An [`IoResult`] containing the server's response as a vector of bytes
 ///
-pub async fn scan_buffer<T: AsyncTransportProtocol>(
+pub async fn scan_buffer<T: TransportProtocol>(
     buffer: &[u8],
-    transport_protocol: T,
+    connection: T,
     chunk_size: Option<usize>,
 ) -> IoResult {
-    let stream = transport_protocol.to_stream().await?;
+    let stream = connection.connect().await?;
     scan(buffer, chunk_size, stream).await
 }
 
@@ -455,7 +455,7 @@ pub async fn scan_buffer<T: AsyncTransportProtocol>(
 /// # Arguments
 ///
 /// * `input_stream`: The stream to be scanned
-/// * `transport_protocol`: The protocol to use (either TCP or a Unix socket connection)
+/// * `connection`: The protocol to use (either TCP or a Unix socket connection)
 /// * `chunk_size`: An optional chunk size for reading data. If [`None`], a default chunk size is used
 ///
 /// # Returns
@@ -464,12 +464,12 @@ pub async fn scan_buffer<T: AsyncTransportProtocol>(
 ///
 pub async fn scan_stream<
     S: Stream<Item = Result<bytes::Bytes, io::Error>>,
-    T: AsyncTransportProtocol,
+    T: TransportProtocol,
 >(
     input_stream: S,
-    transport_protocol: T,
+    connection: T,
     chunk_size: Option<usize>,
 ) -> IoResult {
-    let output_stream = transport_protocol.to_stream().await?;
+    let output_stream = connection.connect().await?;
     _scan_stream(input_stream, chunk_size, output_stream).await
 }

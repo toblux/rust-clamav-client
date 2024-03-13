@@ -343,13 +343,13 @@ pub trait TransportProtocol {
     type Stream: Read + Write;
 
     /// Converts the protocol instance into the corresponding stream
-    fn to_stream(&self) -> io::Result<Self::Stream>;
+    fn connect(&self) -> io::Result<Self::Stream>;
 }
 
 impl<A: ToSocketAddrs> TransportProtocol for Tcp<A> {
     type Stream = TcpStream;
 
-    fn to_stream(&self) -> io::Result<Self::Stream> {
+    fn connect(&self) -> io::Result<Self::Stream> {
         TcpStream::connect(&self.host_address)
     }
 }
@@ -358,7 +358,7 @@ impl<A: ToSocketAddrs> TransportProtocol for Tcp<A> {
 impl<P: AsRef<Path>> TransportProtocol for Socket<P> {
     type Stream = UnixStream;
 
-    fn to_stream(&self) -> io::Result<Self::Stream> {
+    fn connect(&self) -> io::Result<Self::Stream> {
         UnixStream::connect(&self.socket_path)
     }
 }
@@ -370,7 +370,7 @@ impl<P: AsRef<Path>> TransportProtocol for Socket<P> {
 ///
 /// # Arguments
 ///
-/// * `transport_protocol`: The protocol to use (either TCP or a Unix socket connection)
+/// * `connection`: The protocol to use (either TCP or a Unix socket connection)
 ///
 /// # Returns
 ///
@@ -387,8 +387,8 @@ impl<P: AsRef<Path>> TransportProtocol for Socket<P> {
 /// # assert!(clamd_available);
 /// ```
 ///
-pub fn ping<T: TransportProtocol>(transport_protocol: T) -> IoResult {
-    let stream = transport_protocol.to_stream()?;
+pub fn ping<T: TransportProtocol>(connection: T) -> IoResult {
+    let stream = connection.connect()?;
     _ping(stream)
 }
 
@@ -400,7 +400,7 @@ pub fn ping<T: TransportProtocol>(transport_protocol: T) -> IoResult {
 ///
 /// # Arguments
 ///
-/// * `transport_protocol`: The protocol to use (either TCP or a Unix socket connection)
+/// * `connection`: The protocol to use (either TCP or a Unix socket connection)
 ///
 /// # Returns
 ///
@@ -414,8 +414,8 @@ pub fn ping<T: TransportProtocol>(transport_protocol: T) -> IoResult {
 /// # assert!(version.starts_with(b"ClamAV"));
 /// ```
 ///
-pub fn get_version<T: TransportProtocol>(transport_protocol: T) -> IoResult {
-    let stream = transport_protocol.to_stream()?;
+pub fn get_version<T: TransportProtocol>(connection: T) -> IoResult {
+    let stream = connection.connect()?;
     _get_version(stream)
 }
 
@@ -427,7 +427,7 @@ pub fn get_version<T: TransportProtocol>(transport_protocol: T) -> IoResult {
 /// # Arguments
 ///
 /// * `file_path`: The path to the file to be scanned
-/// * `transport_protocol`: The protocol to use (either TCP or a Unix socket connection)
+/// * `connection`: The protocol to use (either TCP or a Unix socket connection)
 /// * `chunk_size`: An optional chunk size for reading data. If [`None`], a default chunk size is used
 ///
 /// # Returns
@@ -436,11 +436,11 @@ pub fn get_version<T: TransportProtocol>(transport_protocol: T) -> IoResult {
 ///
 pub fn scan_file<P: AsRef<Path>, T: TransportProtocol>(
     file_path: P,
-    transport_protocol: T,
+    connection: T,
     chunk_size: Option<usize>,
 ) -> IoResult {
     let file = File::open(file_path)?;
-    let stream = transport_protocol.to_stream()?;
+    let stream = connection.connect()?;
     scan(file, chunk_size, stream)
 }
 
@@ -452,7 +452,7 @@ pub fn scan_file<P: AsRef<Path>, T: TransportProtocol>(
 /// # Arguments
 ///
 /// * `buffer`: The data to be scanned
-/// * `transport_protocol`: The protocol to use (either TCP or a Unix socket connection)
+/// * `connection`: The protocol to use (either TCP or a Unix socket connection)
 /// * `chunk_size`: An optional chunk size for reading data. If [`None`], a default chunk size is used
 ///
 /// # Returns
@@ -461,9 +461,9 @@ pub fn scan_file<P: AsRef<Path>, T: TransportProtocol>(
 ///
 pub fn scan_buffer<T: TransportProtocol>(
     buffer: &[u8],
-    transport_protocol: T,
+    connection: T,
     chunk_size: Option<usize>,
 ) -> IoResult {
-    let stream = transport_protocol.to_stream()?;
+    let stream = connection.connect()?;
     scan(buffer, chunk_size, stream)
 }
