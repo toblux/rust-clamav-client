@@ -197,6 +197,19 @@ mod tokio_tests {
 
     #[tokio::test]
     #[cfg(unix)]
+    async fn async_tokio_get_version_socket() {
+        let err_msg = format!(
+            "Could not get ClamAV version via Unix socket at {}",
+            CLAMD_HOST_SOCKET.socket_path
+        );
+        let response = clamav_client::tokio::get_version(CLAMD_HOST_SOCKET)
+            .await
+            .expect(&err_msg);
+        assert!(&response.starts_with(b"ClamAV"));
+    }
+
+    #[tokio::test]
+    #[cfg(unix)]
     async fn async_tokio_scan_socket_infected_file() {
         let err_msg = format!(
             "Could not scan test file {} via socket at {}",
@@ -265,6 +278,18 @@ mod tokio_tests {
             .await
             .expect(&err_msg);
         assert_eq!(&response, clamav_client::PONG);
+    }
+
+    #[tokio::test]
+    async fn async_tokio_get_version_tcp() {
+        let err_msg = format!(
+            "Could not get ClamAV version via TCP at {}",
+            CLAMD_HOST_TCP.host_address
+        );
+        let response = clamav_client::tokio::get_version(CLAMD_HOST_TCP)
+            .await
+            .expect(&err_msg);
+        assert!(&response.starts_with(b"ClamAV"));
     }
 
     #[tokio::test]
@@ -468,6 +493,19 @@ mod async_std_tests {
 
     #[async_std::test]
     #[cfg(unix)]
+    async fn async_std_get_version_socket() {
+        let err_msg = format!(
+            "Could not get ClamAV version via Unix socket at {}",
+            CLAMD_HOST_SOCKET.socket_path
+        );
+        let response = clamav_client::async_std::get_version(CLAMD_HOST_SOCKET)
+            .await
+            .expect(&err_msg);
+        assert!(&response.starts_with(b"ClamAV"));
+    }
+
+    #[async_std::test]
+    #[cfg(unix)]
     async fn async_std_scan_socket_infected_file() {
         let err_msg = format!(
             "Could not scan test file {} via socket at {}",
@@ -536,6 +574,18 @@ mod async_std_tests {
             .await
             .expect(&err_msg);
         assert_eq!(&response, clamav_client::PONG);
+    }
+
+    #[async_std::test]
+    async fn async_std_get_version_tcp() {
+        let err_msg = format!(
+            "Could not get ClamAV version via TCP at {}",
+            CLAMD_HOST_TCP.host_address
+        );
+        let response = clamav_client::async_std::get_version(CLAMD_HOST_TCP)
+            .await
+            .expect(&err_msg);
+        assert!(&response.starts_with(b"ClamAV"));
     }
 
     #[async_std::test]
