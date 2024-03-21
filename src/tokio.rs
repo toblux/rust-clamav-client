@@ -103,7 +103,7 @@ async fn _scan_stream<
 ///
 /// # Arguments
 ///
-/// * `connection`: The protocol to use (either TCP or a Unix socket connection)
+/// * `connection`: The connection type to use - either TCP or a Unix socket connection
 ///
 /// # Returns
 ///
@@ -357,7 +357,7 @@ impl<P: AsRef<Path>> TransportProtocol for Socket<P> {
 ///
 /// # Arguments
 ///
-/// * `connection`: The protocol to use (either TCP or a Unix socket connection)
+/// * `connection`: The connection type to use - either TCP or a Unix socket connection
 ///
 /// # Returns
 ///
@@ -390,7 +390,7 @@ pub async fn ping<T: TransportProtocol>(connection: T) -> IoResult {
 ///
 /// # Arguments
 ///
-/// * `connection`: The protocol to use (either TCP or a Unix socket connection)
+/// * `connection`: The connection type to use - either TCP or a Unix socket connection
 ///
 /// # Returns
 ///
@@ -420,7 +420,7 @@ pub async fn get_version<T: TransportProtocol>(connection: T) -> IoResult {
 /// # Arguments
 ///
 /// * `file_path`: The path to the file to be scanned
-/// * `connection`: The protocol to use (either TCP or a Unix socket connection)
+/// * `connection`: The connection type to use - either TCP or a Unix socket connection
 /// * `chunk_size`: An optional chunk size for reading data. If [`None`], a default chunk size is used
 ///
 /// # Returns
@@ -444,7 +444,7 @@ pub async fn scan_file<P: AsRef<Path>, T: TransportProtocol>(
 /// # Arguments
 ///
 /// * `buffer`: The data to be scanned
-/// * `connection`: The protocol to use (either TCP or a Unix socket connection)
+/// * `connection`: The connection type to use - either TCP or a Unix socket connection
 /// * `chunk_size`: An optional chunk size for reading data. If [`None`], a default chunk size is used
 ///
 /// # Returns
@@ -467,7 +467,7 @@ pub async fn scan_buffer<T: TransportProtocol>(
 /// # Arguments
 ///
 /// * `input_stream`: The stream to be scanned
-/// * `connection`: The protocol to use (either TCP or a Unix socket connection)
+/// * `connection`: The connection type to use - either TCP or a Unix socket connection
 /// * `chunk_size`: An optional chunk size for reading data. If [`None`], a default chunk size is used
 ///
 /// # Returns

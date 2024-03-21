@@ -371,7 +371,7 @@ impl<P: AsRef<Path>> TransportProtocol for Socket<P> {
 ///
 /// # Arguments
 ///
-/// * `connection`: The protocol to use (either TCP or a Unix socket connection)
+/// * `connection`: The connection type to use - either TCP or a Unix socket connection
 ///
 /// # Returns
 ///
@@ -401,7 +401,7 @@ pub fn ping<T: TransportProtocol>(connection: T) -> IoResult {
 ///
 /// # Arguments
 ///
-/// * `connection`: The protocol to use (either TCP or a Unix socket connection)
+/// * `connection`: The connection type to use - either TCP or a Unix socket connection
 ///
 /// # Returns
 ///
@@ -428,7 +428,7 @@ pub fn get_version<T: TransportProtocol>(connection: T) -> IoResult {
 /// # Arguments
 ///
 /// * `file_path`: The path to the file to be scanned
-/// * `connection`: The protocol to use (either TCP or a Unix socket connection)
+/// * `connection`: The connection type to use - either TCP or a Unix socket connection
 /// * `chunk_size`: An optional chunk size for reading data. If [`None`], a default chunk size is used
 ///
 /// # Returns
@@ -453,7 +453,7 @@ pub fn scan_file<P: AsRef<Path>, T: TransportProtocol>(
 /// # Arguments
 ///
 /// * `buffer`: The data to be scanned
-/// * `connection`: The protocol to use (either TCP or a Unix socket connection)
+/// * `connection`: The connection type to use - either TCP or a Unix socket connection
 /// * `chunk_size`: An optional chunk size for reading data. If [`None`], a default chunk size is used
 ///
 /// # Returns
