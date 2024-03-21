@@ -32,6 +32,7 @@ const DEFAULT_CHUNK_SIZE: usize = 4096;
 /// ClamAV commands
 const PING: &[u8; 6] = b"zPING\0";
 const VERSION: &[u8; 9] = b"zVERSION\0";
+const SHUTDOWN: &[u8; 10] = b"zSHUTDOWN\0";
 const INSTREAM: &[u8; 10] = b"zINSTREAM\0";
 const END_OF_STREAM: &[u8; 4] = &[0, 0, 0, 0];
 
@@ -466,4 +467,23 @@ pub fn scan_buffer<T: TransportProtocol>(
 ) -> IoResult {
     let stream = connection.connect()?;
     scan(buffer, chunk_size, stream)
+}
+
+/// Shuts down a ClamAV server
+///
+/// This function establishes a connection to a ClamAV server and sends the
+/// SHUTDOWN command to it. If the server is available, it will perform a clean
+/// exit and shut itself down. The response will be empty.
+///
+/// # Arguments
+///
+/// * `connection`: The connection type to use - either TCP or a Unix socket connection
+///
+/// # Returns
+///
+/// An [`IoResult`] containing the server's response
+///
+pub fn shutdown<T: TransportProtocol>(connection: T) -> IoResult {
+    let stream = connection.connect()?;
+    send_command(stream, SHUTDOWN, None)
 }

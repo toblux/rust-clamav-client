@@ -12,7 +12,7 @@ use tokio::net::UnixStream;
 #[cfg(feature = "tokio-stream")]
 use tokio_stream::{Stream, StreamExt};
 
-use super::{IoResult, DEFAULT_CHUNK_SIZE, END_OF_STREAM, INSTREAM, PING, PONG, VERSION};
+use super::{IoResult, DEFAULT_CHUNK_SIZE, END_OF_STREAM, INSTREAM, PING, PONG, SHUTDOWN, VERSION};
 
 async fn send_command<RW: AsyncRead + AsyncWrite + Unpin>(
     mut stream: RW,
@@ -485,4 +485,23 @@ pub async fn scan_stream<
 ) -> IoResult {
     let output_stream = connection.connect().await?;
     _scan_stream(input_stream, chunk_size, output_stream).await
+}
+
+/// Shuts down a ClamAV server
+///
+/// This function establishes a connection to a ClamAV server and sends the
+/// SHUTDOWN command to it. If the server is available, it will perform a clean
+/// exit and shut itself down. The response will be empty.
+///
+/// # Arguments
+///
+/// * `connection`: The connection type to use - either TCP or a Unix socket connection
+///
+/// # Returns
+///
+/// An [`IoResult`] containing the server's response
+///
+pub async fn shutdown<T: TransportProtocol>(connection: T) -> IoResult {
+    let stream = connection.connect().await?;
+    send_command(stream, SHUTDOWN, None).await
 }
