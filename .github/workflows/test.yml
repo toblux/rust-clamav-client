@@ -11,7 +11,7 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v4
       - name: Start ClamAV daemon
-        uses: toblux/start-clamd-github-action@v0.1
+        uses: toblux/start-clamd-github-action@v0.2
         with:
           stream_max_length: 1000000
       - name: Run tests with separate features
