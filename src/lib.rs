@@ -309,7 +309,8 @@ pub fn scan_buffer_tcp<A: ToSocketAddrs>(
 /// # Example
 ///
 /// ```
-/// let response = clamav_client::scan_buffer_tcp(br#"clean data"#, "localhost:3310", None).unwrap();
+/// let clamd_tcp = clamav_client::Tcp{ host_address: "localhost:3310" };
+/// let response = clamav_client::scan_buffer(br#"clean data"#, clamd_tcp, None).unwrap();
 /// let data_clean = clamav_client::clean(&response).unwrap();
 /// # assert_eq!(data_clean, true);
 /// ```
