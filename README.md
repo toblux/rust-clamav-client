@@ -47,7 +47,7 @@ The `*_socket` and `*_tcp` functions have been deprecated in favor of more gener
 
 For example,
 
-```rust
+```rust,ignore
 let clamd_host_address = "localhost:3310";
 let result = clamav_client::scan_file_tcp("README.md", clamd_host_address, None);
 assert!(result.is_ok());
