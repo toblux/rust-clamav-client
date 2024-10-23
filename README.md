@@ -41,7 +41,11 @@ clamav-client = { version = "0.5.2", features = ["async-std"] }
 
 ## Migrations
 
-### Migrate to 0.5.0
+### Migrate to 1.x
+
+The `*_socket` and `*_tcp` functions were deprecated in version 0.5.0 and have been removed in version 1.0.0.
+
+### Migrate to 0.5.x
 
 The `*_socket` and `*_tcp` functions have been deprecated in favor of more general functions with the same name, but without the suffixes. These updated functions, such as `ping`, `scan_buffer`, and `scan_file`, now have the connection type (TCP or Unix socket) as a parameter, effectively replacing the `host_address` and `socket_path` parameters.
 
