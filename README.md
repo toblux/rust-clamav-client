@@ -6,7 +6,8 @@ It provides a synchronous API and asynchronous functions for both Tokio and asyn
 
 Check out the [examples](#examples) below, the [integration tests](tests/clamav_client.rs), or the [API docs](https://docs.rs/clamav-client) for more information on how to use this library.
 
-![Workflow status](https://github.com/toblux/rust-clamav-client/actions/workflows/test.yml/badge.svg)
+[![Build status](https://github.com/toblux/rust-clamav-client/actions/workflows/test.yml/badge.svg)](https://github.com/toblux/rust-clamav-client/actions)
+[![Crates.io](https://img.shields.io/crates/v/clamav-client.svg)](https://crates.io/crates/clamav-client)
 
 ## Installation
 
