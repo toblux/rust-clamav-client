@@ -20,8 +20,8 @@ jobs:
           stream_max_length: 1000000
       - name: Run tests with separate features
         run: |
-          cargo test --features tokio -- --skip oversized
-          cargo test --features tokio-stream -- --skip oversized
-          cargo test --features async-std -- --skip oversized
+          cargo test --features tokio
+          cargo test --features tokio-stream
+          cargo test --features async-std
       - name: Run tests with all features
-        run: cargo test --all-features -- --skip oversized
+        run: cargo test --all-features
