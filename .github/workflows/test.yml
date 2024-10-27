@@ -20,8 +20,8 @@ jobs:
           stream_max_length: 1000000
       - name: Run tests with separate features
         run: |
-          cargo test --features tokio
-          cargo test --features tokio-stream
-          cargo test --features async-std
+          RUST_BACKTRACE=1 cargo test --features tokio
+          RUST_BACKTRACE=1 cargo test --features tokio-stream
+          RUST_BACKTRACE=1 cargo test --features async-std
       - name: Run tests with all features
-        run: cargo test --all-features
+        run: RUST_BACKTRACE=1 cargo test --all-features
