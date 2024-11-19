@@ -1,6 +1,6 @@
 [package]
 name = "clamav-client"
-version = "0.5.2"
+version = "1.0.0"
 edition = "2021"
 rust-version = "1.56.0"
 authors = ["Thorsten Blum <thorsten.blum@toblux.com>"]
