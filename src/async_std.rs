@@ -5,7 +5,6 @@ use async_std::{
     path::Path,
     stream::{Stream, StreamExt},
 };
-use async_trait::async_trait;
 
 #[cfg(unix)]
 use async_std::os::unix::net::UnixStream;
@@ -95,7 +94,7 @@ async fn _scan_stream<
 
 /// Use a TCP connection to communicate with a ClamAV server
 #[derive(Copy, Clone)]
-pub struct Tcp<A: ToSocketAddrs> {
+pub struct Tcp<A: ToSocketAddrs + Send + Sync> {
     /// The address (host and port) of the ClamAV server
     pub host_address: A,
 }
@@ -103,37 +102,38 @@ pub struct Tcp<A: ToSocketAddrs> {
 /// Use a Unix socket connection to communicate with a ClamAV server
 #[derive(Copy, Clone)]
 #[cfg(unix)]
-pub struct Socket<P: AsRef<Path>> {
+pub struct Socket<P: AsRef<Path> + Send + Sync> {
     /// The socket file path of the ClamAV server
     pub socket_path: P,
 }
 
 /// The communication protocol to use
-#[async_trait(?Send)]
 pub trait TransportProtocol {
     /// Bidirectional stream
     type Stream: ReadExt + WriteExt + Unpin;
 
     /// Converts the protocol instance into the corresponding stream
-    async fn connect(&self) -> io::Result<Self::Stream>;
+    fn connect(&self) -> impl std::future::Future<Output = io::Result<Self::Stream>> + Send;
 }
 
-#[async_trait(?Send)]
-impl<A: ToSocketAddrs> TransportProtocol for Tcp<A> {
+impl<A> TransportProtocol for Tcp<A>
+where
+    A: ToSocketAddrs + Send + Sync,
+    <A as async_std::net::ToSocketAddrs>::Iter: std::marker::Send,
+{
     type Stream = TcpStream;
 
-    async fn connect(&self) -> io::Result<Self::Stream> {
-        TcpStream::connect(&self.host_address).await
+    fn connect(&self) -> impl std::future::Future<Output = io::Result<Self::Stream>> + Send {
+        TcpStream::connect(&self.host_address)
     }
 }
 
-#[async_trait(?Send)]
 #[cfg(unix)]
-impl<P: AsRef<Path>> TransportProtocol for Socket<P> {
+impl<P: AsRef<Path> + Send + Sync> TransportProtocol for Socket<P> {
     type Stream = UnixStream;
 
-    async fn connect(&self) -> io::Result<Self::Stream> {
-        UnixStream::connect(&self.socket_path).await
+    fn connect(&self) -> impl std::future::Future<Output = io::Result<Self::Stream>> + Send {
+        UnixStream::connect(&self.socket_path)
     }
 }
 
