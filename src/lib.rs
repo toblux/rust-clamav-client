@@ -11,10 +11,11 @@ pub mod tokio;
 /// Use the feature flag "async-std" to enable this module
 pub mod async_std;
 
-/// Blocking
+/// Interacting with ClamAV in a synchronous (blocking) way
 pub mod blocking;
 
-/// Nonblocking
+#[cfg(feature = "async")]
+/// Interacting with ClamAV in a asynchronous (non-blocking) way
 pub mod nonblocking;
 
 /// Custom result type
