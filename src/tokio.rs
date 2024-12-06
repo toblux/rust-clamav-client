@@ -1,4 +1,3 @@
-use async_trait::async_trait;
 use std::path::Path;
 use tokio::{
     fs::File,
@@ -112,31 +111,28 @@ pub struct Socket<P: AsRef<Path>> {
 }
 
 /// The communication protocol to use
-#[async_trait(?Send)]
 pub trait TransportProtocol {
     /// Bidirectional stream
     type Stream: AsyncRead + AsyncWrite + Unpin;
 
     /// Converts the protocol instance into the corresponding stream
-    async fn connect(&self) -> io::Result<Self::Stream>;
+    fn connect(&self) -> impl std::future::Future<Output = io::Result<Self::Stream>>;
 }
 
-#[async_trait(?Send)]
 impl<A: ToSocketAddrs> TransportProtocol for Tcp<A> {
     type Stream = TcpStream;
 
-    async fn connect(&self) -> io::Result<Self::Stream> {
-        TcpStream::connect(&self.host_address).await
+    fn connect(&self) -> impl std::future::Future<Output = io::Result<Self::Stream>> {
+        TcpStream::connect(&self.host_address)
     }
 }
 
-#[async_trait(?Send)]
 #[cfg(unix)]
 impl<P: AsRef<Path>> TransportProtocol for Socket<P> {
     type Stream = UnixStream;
 
-    async fn connect(&self) -> io::Result<Self::Stream> {
-        UnixStream::connect(&self.socket_path).await
+    fn connect(&self) -> impl std::future::Future<Output = io::Result<Self::Stream>> {
+        UnixStream::connect(&self.socket_path)
     }
 }
 

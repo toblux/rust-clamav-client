@@ -14,6 +14,8 @@ const OK_RESPONSE: &[u8] = b"stream: OK\0";
 const OVERSIZED_TEST_FILE_PATH: &str = "tests/data/stream-max-length-test-file.bin";
 const SIZE_LIMIT_EXCEEDED_ERROR_RESPONSE: &[u8] = b"INSTREAM size limit exceeded. ERROR\0";
 
+fn assert_implements_send_sync<T: Send + Sync>(_t: T) {}
+
 mod lib_tests {
     use super::*;
 
@@ -345,6 +347,24 @@ mod tokio_tests {
         assert_eq!(&response, SIZE_LIMIT_EXCEEDED_ERROR_RESPONSE);
         assert_eq!(clamav_client::clean(&response), Ok(false));
     }
+
+    #[tokio::test]
+    async fn async_tokio_implements_send_sync_trait() {
+        trait _AssertSendSync: Send + Sync {}
+
+        impl _AssertSendSync for clamav_client::tokio::Tcp<&str> {}
+        assert_implements_send_sync(clamav_client::tokio::scan_buffer(&[], CLAMD_HOST_TCP, None));
+
+        #[cfg(unix)]
+        {
+            impl _AssertSendSync for clamav_client::tokio::Socket<&str> {}
+            assert_implements_send_sync(clamav_client::tokio::scan_buffer(
+                &[],
+                CLAMD_HOST_SOCKET,
+                None,
+            ));
+        }
+    }
 }
 
 #[cfg(feature = "tokio-stream")]
@@ -642,6 +662,28 @@ mod async_std_tests {
                 .expect(&err_msg);
         assert_eq!(&response, SIZE_LIMIT_EXCEEDED_ERROR_RESPONSE);
         assert_eq!(clamav_client::clean(&response), Ok(false));
+    }
+
+    #[async_std::test]
+    async fn async_std_implements_send_sync_trait() {
+        trait _AssertSendSync: Send + Sync {}
+
+        impl _AssertSendSync for clamav_client::async_std::Tcp<&str> {}
+        assert_implements_send_sync(clamav_client::async_std::scan_buffer(
+            &[],
+            CLAMD_HOST_TCP,
+            None,
+        ));
+
+        #[cfg(unix)]
+        {
+            impl _AssertSendSync for clamav_client::async_std::Socket<&str> {}
+            assert_implements_send_sync(clamav_client::async_std::scan_buffer(
+                &[],
+                CLAMD_HOST_SOCKET,
+                None,
+            ));
+        }
     }
 }
 
