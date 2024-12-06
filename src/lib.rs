@@ -1,7 +1,7 @@
 #![doc = include_str!("../README.md")]
 #![deny(missing_docs)]
 
-use std::path::Path;
+use std::{net::ToSocketAddrs, path::Path};
 
 #[cfg(feature = "tokio")]
 /// Use the feature flag "tokio" or "tokio-stream" to enable this module
@@ -40,7 +40,7 @@ pub use blocking::{get_version, ping, scan_buffer, scan_file};
 
 /// Use a TCP connection to communicate with a ClamAV server
 #[derive(Debug, Clone, Copy)]
-pub struct Tcp<T> {
+pub struct Tcp<T: ToSocketAddrs> {
     /// The address (host and port) of the ClamAV server
     pub host_address: T,
 }
