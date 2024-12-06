@@ -10,6 +10,10 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v4
+      - name: Verify MSRV
+        run: |
+          cargo install cargo-msrv --locked
+          cargo msrv verify
       - name: Start ClamAV daemon
         uses: toblux/start-clamd-github-action@v0.2
         with:
