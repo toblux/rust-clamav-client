@@ -766,16 +766,23 @@ mod test_future_is_send {
     #[cfg(feature = "tokio")]
     #[tokio::test]
     async fn test_tokio_future_is_send() {
-        use clamav_client::tokio::{scan_buffer, Socket, Tcp};
+        use clamav_client::tokio::{self, scan_buffer, Tcp};
         is_send(scan_buffer(&[], Tcp { host_address: "" }, None));
-        is_send(scan_buffer(&[], Socket { socket_path: "" }, None));
+
+        #[cfg(unix)]
+        is_send(scan_buffer(&[], tokio::Socket { socket_path: "" }, None));
     }
 
     #[cfg(feature = "async-std")]
     #[async_std::test]
     async fn test_async_std_future_is_send() {
-        use clamav_client::async_std::{scan_buffer, Socket, Tcp};
+        use clamav_client::async_std::{self, scan_buffer, Tcp};
         is_send(scan_buffer(&[], Tcp { host_address: "" }, None));
-        is_send(scan_buffer(&[], Socket { socket_path: "" }, None));
+        #[cfg(unix)]
+        is_send(scan_buffer(
+            &[],
+            async_std::Socket { socket_path: "" },
+            None,
+        ));
     }
 }
