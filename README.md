@@ -228,3 +228,4 @@ Contributions are welcome!
 - [Paul Makles](https://github.com/insertish)
 - [Sean Clarke](https://github.com/SeanEClarke)
 - [Kanji Tanaka](https://github.com/kaicoh)
+- [Raui Ghazaleh](https://github.com/raui100)
