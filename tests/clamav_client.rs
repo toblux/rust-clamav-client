@@ -14,6 +14,8 @@ const OK_RESPONSE: &[u8] = b"stream: OK\0";
 const OVERSIZED_TEST_FILE_PATH: &str = "tests/data/stream-max-length-test-file.bin";
 const SIZE_LIMIT_EXCEEDED_ERROR_RESPONSE: &[u8] = b"INSTREAM size limit exceeded. ERROR\0";
 
+fn assert_implements_send_sync<T: Send + Sync>(_t: T) {}
+
 mod lib_tests {
     use super::*;
 
@@ -345,6 +347,24 @@ mod tokio_tests {
         assert_eq!(&response, SIZE_LIMIT_EXCEEDED_ERROR_RESPONSE);
         assert_eq!(clamav_client::clean(&response), Ok(false));
     }
+
+    #[tokio::test]
+    async fn async_tokio_implements_send_sync_trait() {
+        trait _AssertSendSync: Send + Sync {}
+
+        impl _AssertSendSync for clamav_client::tokio::Tcp<&str> {}
+        assert_implements_send_sync(clamav_client::tokio::scan_buffer(&[], CLAMD_HOST_TCP, None));
+
+        #[cfg(unix)]
+        {
+            impl _AssertSendSync for clamav_client::tokio::Socket<&str> {}
+            assert_implements_send_sync(clamav_client::tokio::scan_buffer(
+                &[],
+                CLAMD_HOST_SOCKET,
+                None,
+            ));
+        }
+    }
 }
 
 #[cfg(feature = "tokio-stream")]
@@ -643,6 +663,28 @@ mod async_std_tests {
         assert_eq!(&response, SIZE_LIMIT_EXCEEDED_ERROR_RESPONSE);
         assert_eq!(clamav_client::clean(&response), Ok(false));
     }
+
+    #[async_std::test]
+    async fn async_std_implements_send_sync_trait() {
+        trait _AssertSendSync: Send + Sync {}
+
+        impl _AssertSendSync for clamav_client::async_std::Tcp<&str> {}
+        assert_implements_send_sync(clamav_client::async_std::scan_buffer(
+            &[],
+            CLAMD_HOST_TCP,
+            None,
+        ));
+
+        #[cfg(unix)]
+        {
+            impl _AssertSendSync for clamav_client::async_std::Socket<&str> {}
+            assert_implements_send_sync(clamav_client::async_std::scan_buffer(
+                &[],
+                CLAMD_HOST_SOCKET,
+                None,
+            ));
+        }
+    }
 }
 
 #[cfg(feature = "async-std")]
@@ -758,31 +800,3 @@ mod async_std_stream_tests {
 
 #[cfg(feature = "async-std")]
 mod async_std_util;
-
-// Checks if the library can be used with work stealing async runtimes like tokio
-mod test_future_is_send {
-    fn is_send<T: Send>(_t: T) {}
-
-    #[cfg(feature = "tokio")]
-    #[tokio::test]
-    async fn test_tokio_future_is_send() {
-        use clamav_client::tokio::{self, scan_buffer, Tcp};
-        is_send(scan_buffer(&[], Tcp { host_address: "" }, None));
-
-        #[cfg(unix)]
-        is_send(scan_buffer(&[], tokio::Socket { socket_path: "" }, None));
-    }
-
-    #[cfg(feature = "async-std")]
-    #[async_std::test]
-    async fn test_async_std_future_is_send() {
-        use clamav_client::async_std::{self, scan_buffer, Tcp};
-        is_send(scan_buffer(&[], Tcp { host_address: "" }, None));
-        #[cfg(unix)]
-        is_send(scan_buffer(
-            &[],
-            async_std::Socket { socket_path: "" },
-            None,
-        ));
-    }
-}
