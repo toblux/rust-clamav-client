@@ -16,6 +16,25 @@ const SIZE_LIMIT_EXCEEDED_ERROR_RESPONSE: &[u8] = b"INSTREAM size limit exceeded
 
 fn assert_implements_send_sync<T: Send + Sync>(_t: T) {}
 
+/// When exceeding the configured size limit ClamAV might respond with:
+/// 1. `SIZE_LIMIT_EXCEEDED_ERROR_RESPONSE`
+/// 2. Stopping the connection via code 32 (BrokenPipe) or 104 (ConnectionReset)
+fn assert_size_limit_exceeded_response(result: clamav_client::IoResult) {
+    match result {
+        Ok(response) => {
+            assert_eq!(&response, SIZE_LIMIT_EXCEEDED_ERROR_RESPONSE);
+            assert_eq!(clamav_client::clean(&response), Ok(false));
+        }
+        Err(err) => {
+            use std::io::ErrorKind;
+            assert!(matches!(
+                err.kind(),
+                ErrorKind::BrokenPipe | ErrorKind::ConnectionReset
+            ));
+        }
+    }
+}
+
 mod lib_tests {
     use super::*;
 
@@ -92,14 +111,11 @@ mod lib_tests {
     #[test]
     #[cfg(unix)]
     fn scan_socket_oversized_file() {
-        let err_msg = format!(
-            "Could not scan test file {} via socket at {}",
-            OVERSIZED_TEST_FILE_PATH, CLAMD_HOST_SOCKET.socket_path
-        );
-        let response = clamav_client::scan_file(OVERSIZED_TEST_FILE_PATH, CLAMD_HOST_SOCKET, None)
-            .expect(&err_msg);
-        assert_eq!(&response, SIZE_LIMIT_EXCEEDED_ERROR_RESPONSE);
-        assert_eq!(clamav_client::clean(&response), Ok(false));
+        assert_size_limit_exceeded_response(clamav_client::scan_file(
+            OVERSIZED_TEST_FILE_PATH,
+            CLAMD_HOST_SOCKET,
+            None,
+        ));
     }
 
     #[test]
@@ -160,14 +176,11 @@ mod lib_tests {
 
     #[test]
     fn scan_tcp_oversized_file() {
-        let err_msg = format!(
-            "Could not scan test file {} via TCP at {}",
-            OVERSIZED_TEST_FILE_PATH, CLAMD_HOST_TCP.host_address
-        );
-        let response = clamav_client::scan_file(OVERSIZED_TEST_FILE_PATH, CLAMD_HOST_TCP, None)
-            .expect(&err_msg);
-        assert_eq!(&response, SIZE_LIMIT_EXCEEDED_ERROR_RESPONSE);
-        assert_eq!(clamav_client::clean(&response), Ok(false));
+        assert_size_limit_exceeded_response(clamav_client::scan_file(
+            OVERSIZED_TEST_FILE_PATH,
+            CLAMD_HOST_TCP,
+            None,
+        ));
     }
 }
 
@@ -258,16 +271,10 @@ mod tokio_tests {
     #[tokio::test]
     #[cfg(unix)]
     async fn async_tokio_scan_socket_oversized_file() {
-        let err_msg = format!(
-            "Could not scan test file {} via socket at {}",
-            OVERSIZED_TEST_FILE_PATH, CLAMD_HOST_SOCKET.socket_path
-        );
-        let response =
+        assert_size_limit_exceeded_response(
             clamav_client::tokio::scan_file(OVERSIZED_TEST_FILE_PATH, CLAMD_HOST_SOCKET, None)
-                .await
-                .expect(&err_msg);
-        assert_eq!(&response, SIZE_LIMIT_EXCEEDED_ERROR_RESPONSE);
-        assert_eq!(clamav_client::clean(&response), Ok(false));
+                .await,
+        );
     }
 
     #[tokio::test]
@@ -336,16 +343,9 @@ mod tokio_tests {
 
     #[tokio::test]
     async fn async_tokio_scan_tcp_oversized_file() {
-        let err_msg = format!(
-            "Could not scan test file {} via TCP at {}",
-            OVERSIZED_TEST_FILE_PATH, CLAMD_HOST_TCP.host_address
+        assert_size_limit_exceeded_response(
+            clamav_client::tokio::scan_file(OVERSIZED_TEST_FILE_PATH, CLAMD_HOST_TCP, None).await,
         );
-        let response =
-            clamav_client::tokio::scan_file(OVERSIZED_TEST_FILE_PATH, CLAMD_HOST_TCP, None)
-                .await
-                .expect(&err_msg);
-        assert_eq!(&response, SIZE_LIMIT_EXCEEDED_ERROR_RESPONSE);
-        assert_eq!(clamav_client::clean(&response), Ok(false));
     }
 
     #[tokio::test]
@@ -426,16 +426,9 @@ mod tokio_stream_tests {
     #[cfg(unix)]
     async fn async_tokio_scan_socket_oversized_stream() {
         let stream = stream_from_file(OVERSIZED_TEST_FILE_PATH).await;
-
-        let err_msg = format!(
-            "Could not scan test file {} via socket at {}",
-            OVERSIZED_TEST_FILE_PATH, CLAMD_HOST_SOCKET.socket_path
+        assert_size_limit_exceeded_response(
+            clamav_client::tokio::scan_stream(stream, CLAMD_HOST_SOCKET, None).await,
         );
-        let response = clamav_client::tokio::scan_stream(stream, CLAMD_HOST_SOCKET, None)
-            .await
-            .expect(&err_msg);
-        assert_eq!(&response, SIZE_LIMIT_EXCEEDED_ERROR_RESPONSE);
-        assert_eq!(clamav_client::clean(&response), Ok(false));
     }
 
     #[tokio::test]
@@ -471,16 +464,9 @@ mod tokio_stream_tests {
     #[tokio::test]
     async fn async_tokio_scan_tcp_oversized_stream() {
         let stream = stream_from_file(OVERSIZED_TEST_FILE_PATH).await;
-
-        let err_msg = format!(
-            "Could not scan test file {} via TCP at {}",
-            OVERSIZED_TEST_FILE_PATH, CLAMD_HOST_TCP.host_address
+        assert_size_limit_exceeded_response(
+            clamav_client::tokio::scan_stream(stream, CLAMD_HOST_TCP, None).await,
         );
-        let response = clamav_client::tokio::scan_stream(stream, CLAMD_HOST_TCP, None)
-            .await
-            .expect(&err_msg);
-        assert_eq!(&response, SIZE_LIMIT_EXCEEDED_ERROR_RESPONSE);
-        assert_eq!(clamav_client::clean(&response), Ok(false));
     }
 }
 
@@ -572,16 +558,10 @@ mod async_std_tests {
     #[async_std::test]
     #[cfg(unix)]
     async fn async_std_scan_socket_oversized_file() {
-        let err_msg = format!(
-            "Could not scan test file {} via socket at {}",
-            OVERSIZED_TEST_FILE_PATH, CLAMD_HOST_SOCKET.socket_path
-        );
-        let response =
+        assert_size_limit_exceeded_response(
             clamav_client::async_std::scan_file(OVERSIZED_TEST_FILE_PATH, CLAMD_HOST_SOCKET, None)
-                .await
-                .expect(&err_msg);
-        assert_eq!(&response, SIZE_LIMIT_EXCEEDED_ERROR_RESPONSE);
-        assert_eq!(clamav_client::clean(&response), Ok(false));
+                .await,
+        );
     }
 
     #[async_std::test]
@@ -652,16 +632,10 @@ mod async_std_tests {
 
     #[async_std::test]
     async fn async_std_scan_tcp_oversized_file() {
-        let err_msg = format!(
-            "Could not scan test file {} via TCP at {}",
-            OVERSIZED_TEST_FILE_PATH, CLAMD_HOST_TCP.host_address
-        );
-        let response =
+        assert_size_limit_exceeded_response(
             clamav_client::async_std::scan_file(OVERSIZED_TEST_FILE_PATH, CLAMD_HOST_TCP, None)
-                .await
-                .expect(&err_msg);
-        assert_eq!(&response, SIZE_LIMIT_EXCEEDED_ERROR_RESPONSE);
-        assert_eq!(clamav_client::clean(&response), Ok(false));
+                .await,
+        );
     }
 
     #[async_std::test]
@@ -744,15 +718,9 @@ mod async_std_stream_tests {
     #[cfg(unix)]
     async fn async_std_scan_socket_oversized_stream() {
         let stream = stream_from_file(OVERSIZED_TEST_FILE_PATH).await;
-        let err_msg = format!(
-            "Could not scan test file {} via socket at {}",
-            OVERSIZED_TEST_FILE_PATH, CLAMD_HOST_SOCKET.socket_path
+        assert_size_limit_exceeded_response(
+            clamav_client::async_std::scan_stream(stream, CLAMD_HOST_SOCKET, None).await,
         );
-        let response = clamav_client::async_std::scan_stream(stream, CLAMD_HOST_SOCKET, None)
-            .await
-            .expect(&err_msg);
-        assert_eq!(&response, SIZE_LIMIT_EXCEEDED_ERROR_RESPONSE);
-        assert_eq!(clamav_client::clean(&response), Ok(false));
     }
 
     #[async_std::test]
@@ -786,15 +754,9 @@ mod async_std_stream_tests {
     #[async_std::test]
     async fn async_std_scan_tcp_oversized_stream() {
         let stream = stream_from_file(OVERSIZED_TEST_FILE_PATH).await;
-        let err_msg = format!(
-            "Could not scan test file {} via TCP at {}",
-            OVERSIZED_TEST_FILE_PATH, CLAMD_HOST_TCP.host_address
+        assert_size_limit_exceeded_response(
+            clamav_client::async_std::scan_stream(stream, CLAMD_HOST_TCP, None).await,
         );
-        let response = clamav_client::async_std::scan_stream(stream, CLAMD_HOST_TCP, None)
-            .await
-            .expect(&err_msg);
-        assert_eq!(&response, SIZE_LIMIT_EXCEEDED_ERROR_RESPONSE);
-        assert_eq!(clamav_client::clean(&response), Ok(false));
     }
 }
 

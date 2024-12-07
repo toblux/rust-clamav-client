@@ -10,9 +10,11 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v4
+      - name: Install cargo binstall
+        uses: cargo-bins/cargo-binstall@main
       - name: Verify MSRV
         run: |
-          cargo install cargo-msrv --locked
+          cargo binstall --version 0.17.1 --no-confirm cargo-msrv
           cargo msrv verify
       - name: Start ClamAV daemon
         uses: toblux/start-clamd-github-action@v0.2
@@ -20,8 +22,8 @@ jobs:
           stream_max_length: 1000000
       - name: Run tests with separate features
         run: |
-          cargo test --features tokio -- --skip oversized
-          cargo test --features tokio-stream -- --skip oversized
-          cargo test --features async-std -- --skip oversized
+          cargo test --features tokio
+          cargo test --features tokio-stream
+          cargo test --features async-std
       - name: Run tests with all features
-        run: cargo test --all-features -- --skip oversized
+        run: cargo test --all-features
