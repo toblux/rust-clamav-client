@@ -56,14 +56,6 @@ fn send_command<RW: Read + Write>(
     Ok(response)
 }
 
-fn _ping<RW: Read + Write>(stream: RW) -> IoResult {
-    send_command(stream, PING, Some(PONG.len()))
-}
-
-fn _get_version<RW: Read + Write>(stream: RW) -> IoResult {
-    send_command(stream, VERSION, None)
-}
-
 fn scan<R: Read, RW: Read + Write>(
     mut input: R,
     chunk_size: Option<usize>,
@@ -180,7 +172,7 @@ impl<P: AsRef<Path>> TransportProtocol for Socket<P> {
 ///
 pub fn ping<T: TransportProtocol>(connection: T) -> IoResult {
     let stream = connection.connect()?;
-    _ping(stream)
+    send_command(stream, PING, Some(PONG.len()))
 }
 
 /// Gets the version number from ClamAV
@@ -207,7 +199,7 @@ pub fn ping<T: TransportProtocol>(connection: T) -> IoResult {
 ///
 pub fn get_version<T: TransportProtocol>(connection: T) -> IoResult {
     let stream = connection.connect()?;
-    _get_version(stream)
+    send_command(stream, VERSION, None)
 }
 
 /// Scans a file for viruses
