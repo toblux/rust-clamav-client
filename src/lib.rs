@@ -31,6 +31,7 @@ const DEFAULT_CHUNK_SIZE: usize = 4096;
 
 /// ClamAV commands
 const PING: &[u8; 6] = b"zPING\0";
+const RELOAD: &[u8; 8] = b"zRELOAD\0";
 const VERSION: &[u8; 9] = b"zVERSION\0";
 const SHUTDOWN: &[u8; 10] = b"zSHUTDOWN\0";
 const INSTREAM: &[u8; 10] = b"zINSTREAM\0";
@@ -38,6 +39,9 @@ const END_OF_STREAM: &[u8; 4] = &[0, 0, 0, 0];
 
 /// ClamAV's response to a PING request
 pub const PONG: &[u8; 5] = b"PONG\0";
+
+/// ClamAV's response to a RELOAD request
+pub const RELOADING: &[u8; 10] = b"RELOADING\0";
 
 fn send_command<RW: Read + Write>(
     mut stream: RW,
@@ -173,6 +177,33 @@ impl<P: AsRef<Path>> TransportProtocol for Socket<P> {
 pub fn ping<T: TransportProtocol>(connection: T) -> IoResult {
     let stream = connection.connect()?;
     send_command(stream, PING, Some(PONG.len()))
+}
+
+/// Reloads the virus databases
+///
+/// This function establishes a connection to a ClamAV server and sends the
+/// RELOAD command to it. If the server is available, it responds with
+/// [`RELOADING`].
+///
+/// # Arguments
+///
+/// * `connection`: The connection type to use - either TCP or a Unix socket connection
+///
+/// # Returns
+///
+/// An [`IoResult`] containing the server's response as a vector of bytes
+///
+/// # Example
+///
+/// ```
+/// let clamd_tcp = clamav_client::Tcp{ host_address: "localhost:3310" };
+/// let response = clamav_client::reload(clamd_tcp).unwrap();
+/// # assert!(response == clamav_client::RELOADING);
+/// ```
+///
+pub fn reload<T: TransportProtocol>(connection: T) -> IoResult {
+    let stream = connection.connect()?;
+    send_command(stream, RELOAD, Some(RELOADING.len()))
 }
 
 /// Gets the version number from ClamAV

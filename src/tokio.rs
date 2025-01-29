@@ -11,7 +11,10 @@ use tokio::net::UnixStream;
 #[cfg(feature = "tokio-stream")]
 use tokio_stream::{Stream, StreamExt};
 
-use super::{IoResult, DEFAULT_CHUNK_SIZE, END_OF_STREAM, INSTREAM, PING, PONG, SHUTDOWN, VERSION};
+use super::{
+    IoResult, DEFAULT_CHUNK_SIZE, END_OF_STREAM, INSTREAM, PING, PONG, RELOAD, RELOADING, SHUTDOWN,
+    VERSION,
+};
 
 async fn send_command<RW: AsyncRead + AsyncWrite + Unpin>(
     mut stream: RW,
@@ -166,6 +169,36 @@ impl<P: AsRef<Path>> TransportProtocol for Socket<P> {
 pub async fn ping<T: TransportProtocol>(connection: T) -> IoResult {
     let stream = connection.connect().await?;
     send_command(stream, PING, Some(PONG.len())).await
+}
+
+/// Reloads the virus databases
+///
+/// This function establishes a connection to a ClamAV server and sends the
+/// RELOAD command to it. If the server is available, it responds with
+/// [`RELOADING`].
+///
+/// # Arguments
+///
+/// * `connection`: The connection type to use - either TCP or a Unix socket connection
+///
+/// # Returns
+///
+/// An [`IoResult`] containing the server's response as a vector of bytes
+///
+/// # Example
+///
+/// ```
+/// # #[tokio::main(flavor = "current_thread")]
+/// # async fn main() {
+/// let clamd_tcp = clamav_client::Tcp{ host_address: "localhost:3310" };
+/// let response = clamav_client::reload(clamd_tcp).unwrap();
+/// # assert!(response == clamav_client::RELOADING);
+/// # }
+/// ```
+///
+pub async fn reload<T: TransportProtocol>(connection: T) -> IoResult {
+    let stream = connection.connect().await?;
+    send_command(stream, RELOAD, Some(RELOADING.len())).await
 }
 
 /// Gets the version number from ClamAV
