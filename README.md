@@ -4,7 +4,7 @@ A simple ClamAV client for sending files, in-memory data, and data streams to `c
 
 Check out the [examples](#examples) below, the [integration tests](tests/clamav_client.rs), or the [API documentation](https://docs.rs/clamav-client) to learn how to use this library.
 
-The integration tests run against a lightweight ClamAV instance, using a standalone GitHub Action I published [here](https://github.com/toblux/start-clamd-github-action) (and on [GitHub Marketplace](https://github.com/marketplace/actions/clamav-daemon)). The action works on Linux, macOS, and Windows runners. Feel free to check it out!
+The integration tests run against a lightweight ClamAV daemon that I published as a [GitHub Action](https://github.com/marketplace/actions/clamav-daemon).
 
 [![Build status](https://github.com/toblux/rust-clamav-client/actions/workflows/test.yml/badge.svg)](https://github.com/toblux/rust-clamav-client/actions)
 [![Crates.io](https://img.shields.io/crates/v/clamav-client.svg)](https://crates.io/crates/clamav-client)
@@ -25,7 +25,7 @@ To use the `async` functions in `clamav_client::tokio`, add this to your `Cargo.
 clamav-client = { version = "2.0.1", features = ["tokio"] }
 ```
 
-To scan Tokio streams, enable the `tokio-stream` feature instead and add this to your `Cargo.toml`:
+To scan Tokio streams, enable the `tokio-stream` feature and add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
