@@ -95,7 +95,7 @@ fn scan<R: Read, RW: Read + Write>(
 ///
 /// ```
 /// let clamd_tcp = clamav_client::Tcp{ host_address: "localhost:3310" };
-/// let response = clamav_client::scan_buffer(br#"clean data"#, clamd_tcp, None).unwrap();
+/// let response = clamav_client::scan_buffer(b"clean data", clamd_tcp, None).unwrap();
 /// let data_clean = clamav_client::clean(&response).unwrap();
 /// # assert_eq!(data_clean, true);
 /// ```
