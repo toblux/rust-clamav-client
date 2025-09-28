@@ -350,19 +350,15 @@ mod tokio_tests {
 
     #[tokio::test]
     async fn async_tokio_implements_send_sync_trait() {
-        trait _AssertSendSync: Send + Sync {}
-
-        impl _AssertSendSync for clamav_client::tokio::Tcp<&str> {}
-        assert_implements_send_sync(clamav_client::tokio::scan_buffer(&[], CLAMD_HOST_TCP, None));
+        assert_implements_send_sync(
+            clamav_client::tokio::scan_buffer(&[], CLAMD_HOST_TCP, None).await,
+        );
 
         #[cfg(unix)]
         {
-            impl _AssertSendSync for clamav_client::tokio::Socket<&str> {}
-            assert_implements_send_sync(clamav_client::tokio::scan_buffer(
-                &[],
-                CLAMD_HOST_SOCKET,
-                None,
-            ));
+            assert_implements_send_sync(
+                clamav_client::tokio::scan_buffer(&[], CLAMD_HOST_SOCKET, None).await,
+            );
         }
     }
 }
@@ -666,26 +662,21 @@ mod async_std_tests {
 
     #[async_std::test]
     async fn async_std_implements_send_sync_trait() {
-        trait _AssertSendSync: Send + Sync {}
-
-        impl _AssertSendSync for clamav_client::async_std::Tcp<&str> {}
-        assert_implements_send_sync(clamav_client::async_std::scan_buffer(
-            &[],
-            CLAMD_HOST_TCP,
-            None,
-        ));
+        assert_implements_send_sync(
+            clamav_client::async_std::scan_buffer(&[], CLAMD_HOST_TCP, None).await,
+        );
 
         #[cfg(unix)]
         {
-            impl _AssertSendSync for clamav_client::async_std::Socket<&str> {}
-            assert_implements_send_sync(clamav_client::async_std::scan_buffer(
-                &[],
-                CLAMD_HOST_SOCKET,
-                None,
-            ));
+            assert_implements_send_sync(
+                clamav_client::async_std::scan_buffer(&[], CLAMD_HOST_SOCKET, None).await,
+            );
         }
     }
 }
+
+#[cfg(feature = "async-std")]
+mod async_std_util;
 
 #[cfg(feature = "async-std")]
 mod async_std_stream_tests {
@@ -798,5 +789,3 @@ mod async_std_stream_tests {
     }
 }
 
-#[cfg(feature = "async-std")]
-mod async_std_util;

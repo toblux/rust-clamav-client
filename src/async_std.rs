@@ -136,6 +136,17 @@ impl<P: AsRef<Path>> TransportProtocol for Socket<P> {
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // Compile-time assertions
+    trait _AssertSendSync: Send + Sync {}
+    impl _AssertSendSync for Tcp<&str> {}
+    #[cfg(unix)]
+    impl _AssertSendSync for Socket<&str> {}
+}
+
 /// Sends a ping request to ClamAV
 ///
 /// This function establishes a connection to a ClamAV server and sends the PING
