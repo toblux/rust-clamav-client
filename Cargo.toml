@@ -10,7 +10,7 @@ documentation = "https://docs.rs/clamav-client"
 description = "ClamAV client library with optional support for async-std, smol, and Tokio"
 readme = "README.md"
 license = "MIT"
-keywords = ["clamav", "clamd", "async", "smol", "tokio", "anitvirus"]
+keywords = ["clamav", "clamd", "anitvirus", "smol", "tokio"]
 exclude = ["clamd", ".github"]
 
 [dependencies]
