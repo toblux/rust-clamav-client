@@ -23,5 +23,6 @@ jobs:
           cargo test --features tokio -- --skip oversized
           cargo test --features tokio-stream -- --skip oversized
           cargo test --features async-std -- --skip oversized
+          cargo test --features smol -- --skip oversized
       - name: Run tests with all features
         run: cargo test --all-features -- --skip oversized

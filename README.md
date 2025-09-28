@@ -1,6 +1,6 @@
 # Rust ClamAV Client
 
-A simple ClamAV client for sending files, in-memory data, and data streams to `clamd` for antivirus scanning. It provides both a synchronous API and asynchronous functions compatible with Tokio and async-std.
+A simple ClamAV client for sending files, in-memory data, and data streams to `clamd` for antivirus scanning. It provides both a synchronous API and asynchronous functions compatible with async-std, smol, and Tokio.
 
 Check out the [examples](#examples) below, the [integration tests](tests/clamav_client.rs), or the [API documentation](https://docs.rs/clamav-client) to learn how to use this library.
 
@@ -15,28 +15,35 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-clamav-client = "2.0.1"
+clamav-client = "2.1.0"
 ```
 
 To use the `async` functions in `clamav_client::tokio`, add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-clamav-client = { version = "2.0.1", features = ["tokio"] }
+clamav-client = { version = "2.1.0", features = ["tokio"] }
 ```
 
 To scan Tokio streams, enable the `tokio-stream` feature and add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-clamav-client = { version = "2.0.1", features = ["tokio-stream"] }
+clamav-client = { version = "2.1.0", features = ["tokio-stream"] }
 ```
 
-Support for `async-std` is also available by enabling the `async-std` feature:
+Support for `smol` is available since version 2.1.0 by enabling the `smol` feature:
 
 ```toml
 [dependencies]
-clamav-client = { version = "2.0.1", features = ["async-std"] }
+clamav-client = { version = "2.1.0", features = ["smol"] }
+```
+
+Support for `async-std` is still available, but `async-std` itself has been discontinued in favor of `smol`. You can enable it with the `async-std` feature:
+
+```toml
+[dependencies]
+clamav-client = { version = "2.1.0", features = ["async-std"] }
 ```
 
 ## Migrations
@@ -164,6 +171,39 @@ tokio::runtime::Builder::new_current_thread().enable_all().build().unwrap().bloc
         println!("The file stream is infected!");
     }
     assert!(!stream_clean);
+})
+```
+
+### Usage - Async with `smol`
+
+```rust
+#[cfg(feature = "smol")]
+smol::block_on(async {
+    let clamd_tcp = clamav_client::smol::Tcp{ host_address: "localhost:3310" };
+
+    // Ping clamd asynchronously and await the result
+    let clamd_available = match clamav_client::smol::ping(clamd_tcp).await {
+        Ok(ping_response) => ping_response == clamav_client::PONG,
+        Err(_) => false,
+    };
+
+    if !clamd_available {
+        println!("Cannot ping clamd at {}", clamd_tcp.host_address);
+        return;
+    }
+    assert!(clamd_available);
+
+    // Scan a file for viruses
+    let file_path = "tests/data/eicar.txt";
+    let scan_file_result = clamav_client::smol::scan_file(file_path, clamd_tcp, None).await;
+    let scan_file_response = scan_file_result.unwrap();
+    let file_clean = clamav_client::clean(&scan_file_response).unwrap();
+    if file_clean {
+        println!("No virus found in {}", file_path);
+    } else {
+        println!("The file {} is infected!", file_path);
+    }
+    assert!(!file_clean);
 })
 ```
 

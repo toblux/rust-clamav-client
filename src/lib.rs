@@ -9,6 +9,10 @@ pub mod tokio;
 /// Use the feature flag "async-std" to enable this module
 pub mod async_std;
 
+#[cfg(feature = "smol")]
+/// Use the feature flag "smol" to enable this module
+pub mod smol;
+
 use std::{
     fs::File,
     io::{self, Error, Read, Write},
