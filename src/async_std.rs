@@ -187,8 +187,8 @@ pub async fn ping<T: TransportProtocol>(connection: T) -> IoResult {
 /// ```
 /// # #[async_std::main]
 /// # async fn main() {
-/// let clamd_tcp = clamav_client::Tcp{ host_address: "localhost:3310" };
-/// let response = clamav_client::reload(clamd_tcp).unwrap();
+/// let clamd_tcp = clamav_client::async_std::Tcp{ host_address: "localhost:3310" };
+/// let response = clamav_client::async_std::reload(clamd_tcp).await.unwrap();
 /// # assert!(response == clamav_client::RELOADING);
 /// # }
 /// ```

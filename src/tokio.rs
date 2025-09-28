@@ -190,8 +190,8 @@ pub async fn ping<T: TransportProtocol>(connection: T) -> IoResult {
 /// ```
 /// # #[tokio::main(flavor = "current_thread")]
 /// # async fn main() {
-/// let clamd_tcp = clamav_client::Tcp{ host_address: "localhost:3310" };
-/// let response = clamav_client::reload(clamd_tcp).unwrap();
+/// let clamd_tcp = clamav_client::tokio::Tcp{ host_address: "localhost:3310" };
+/// let response = clamav_client::tokio::reload(clamd_tcp).await.unwrap();
 /// # assert!(response == clamav_client::RELOADING);
 /// # }
 /// ```
