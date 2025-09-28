@@ -14,6 +14,12 @@ const OK_RESPONSE: &[u8] = b"stream: OK\0";
 const OVERSIZED_TEST_FILE_PATH: &str = "tests/data/stream-max-length-test-file.bin";
 const SIZE_LIMIT_EXCEEDED_ERROR_RESPONSE: &[u8] = b"INSTREAM size limit exceeded. ERROR\0";
 
+#[cfg(any(
+    feature = "async-std",
+    feature = "smol",
+    feature = "tokio",
+    feature = "tokio-stream"
+))]
 fn assert_implements_send_sync<T: Send + Sync>(_t: T) {}
 
 mod lib_tests {
@@ -789,3 +795,196 @@ mod async_std_stream_tests {
     }
 }
 
+#[cfg(feature = "smol")]
+mod smol_tests {
+    use super::*;
+    use macro_rules_attribute::apply;
+    use smol_macros::test;
+
+    const CLAMD_HOST_TCP: clamav_client::smol::Tcp<&str> = clamav_client::smol::Tcp {
+        host_address: TEST_HOST_ADDRESS,
+    };
+
+    #[cfg(unix)]
+    const CLAMD_HOST_SOCKET: clamav_client::smol::Socket<&str> = clamav_client::smol::Socket {
+        socket_path: TEST_SOCKET_PATH,
+    };
+
+    #[apply(test!)]
+    #[cfg(unix)]
+    async fn smol_ping_socket() {
+        let err_msg = format!(
+            "Could not ping clamd via Unix socket at {}",
+            CLAMD_HOST_SOCKET.socket_path
+        );
+        let response = clamav_client::smol::ping(CLAMD_HOST_SOCKET)
+            .await
+            .expect(&err_msg);
+        assert_eq!(&response, clamav_client::PONG);
+    }
+
+    #[apply(test!)]
+    #[cfg(unix)]
+    async fn smol_get_version_socket() {
+        let err_msg = format!(
+            "Could not get ClamAV version via Unix socket at {}",
+            CLAMD_HOST_SOCKET.socket_path
+        );
+        let response = clamav_client::smol::get_version(CLAMD_HOST_SOCKET)
+            .await
+            .expect(&err_msg);
+        assert!(&response.starts_with(b"ClamAV"));
+    }
+
+    #[apply(test!)]
+    #[cfg(unix)]
+    async fn smol_scan_socket_infected_file() {
+        let err_msg = format!(
+            "Could not scan test file {} via socket at {}",
+            EICAR_TEST_FILE_PATH, CLAMD_HOST_SOCKET.socket_path
+        );
+        let response =
+            clamav_client::smol::scan_file(EICAR_TEST_FILE_PATH, CLAMD_HOST_SOCKET, None)
+                .await
+                .expect(&err_msg);
+        assert_eq!(&response, EICAR_FILE_SIGNATURE_FOUND_RESPONSE);
+        assert_eq!(clamav_client::clean(&response), Ok(false));
+    }
+
+    #[apply(test!)]
+    #[cfg(unix)]
+    async fn smol_scan_socket_infected_buffer() {
+        let err_msg = format!(
+            "Could not scan EICAR test string via socket at {}",
+            CLAMD_HOST_SOCKET.socket_path
+        );
+        let buffer = include_bytes!("data/eicar.txt");
+        let response = clamav_client::smol::scan_buffer(buffer, CLAMD_HOST_SOCKET, None)
+            .await
+            .expect(&err_msg);
+        assert_eq!(&response, EICAR_FILE_SIGNATURE_FOUND_RESPONSE);
+        assert_eq!(clamav_client::clean(&response), Ok(false));
+    }
+
+    #[apply(test!)]
+    #[cfg(unix)]
+    async fn smol_scan_socket_clean_file() {
+        let err_msg = format!(
+            "Could not scan test file {} via socket at {}",
+            CLEAN_TEST_FILE_PATH, CLAMD_HOST_SOCKET.socket_path
+        );
+        let response =
+            clamav_client::smol::scan_file(CLEAN_TEST_FILE_PATH, CLAMD_HOST_SOCKET, None)
+                .await
+                .expect(&err_msg);
+        assert_eq!(&response, OK_RESPONSE);
+        assert_eq!(clamav_client::clean(&response), Ok(true));
+    }
+
+    #[apply(test!)]
+    #[cfg(unix)]
+    async fn smol_scan_socket_oversized_file() {
+        let err_msg = format!(
+            "Could not scan test file {} via socket at {}",
+            OVERSIZED_TEST_FILE_PATH, CLAMD_HOST_SOCKET.socket_path
+        );
+        let response =
+            clamav_client::smol::scan_file(OVERSIZED_TEST_FILE_PATH, CLAMD_HOST_SOCKET, None)
+                .await
+                .expect(&err_msg);
+        assert_eq!(&response, SIZE_LIMIT_EXCEEDED_ERROR_RESPONSE);
+        assert_eq!(clamav_client::clean(&response), Ok(false));
+    }
+
+    #[apply(test!)]
+    async fn smol_ping_tcp() {
+        let err_msg = format!(
+            "Could not ping clamd via TCP at {}",
+            CLAMD_HOST_TCP.host_address
+        );
+        let response = clamav_client::smol::ping(CLAMD_HOST_TCP)
+            .await
+            .expect(&err_msg);
+        assert_eq!(&response, clamav_client::PONG);
+    }
+
+    #[apply(test!)]
+    async fn smol_get_version_tcp() {
+        let err_msg = format!(
+            "Could not get ClamAV version via TCP at {}",
+            CLAMD_HOST_TCP.host_address
+        );
+        let response = clamav_client::smol::get_version(CLAMD_HOST_TCP)
+            .await
+            .expect(&err_msg);
+        assert!(&response.starts_with(b"ClamAV"));
+    }
+
+    #[apply(test!)]
+    async fn smol_scan_tcp_infected_file() {
+        let err_msg = format!(
+            "Could not scan test file {} via TCP at {}",
+            EICAR_TEST_FILE_PATH, CLAMD_HOST_TCP.host_address
+        );
+        let response = clamav_client::smol::scan_file(EICAR_TEST_FILE_PATH, CLAMD_HOST_TCP, None)
+            .await
+            .expect(&err_msg);
+        assert_eq!(&response, EICAR_FILE_SIGNATURE_FOUND_RESPONSE);
+        assert_eq!(clamav_client::clean(&response), Ok(false));
+    }
+
+    #[apply(test!)]
+    async fn smol_scan_tcp_infected_buffer() {
+        let err_msg = format!(
+            "Could not scan EICAR test string via TCP at {}",
+            CLAMD_HOST_TCP.host_address
+        );
+        let buffer = include_bytes!("data/eicar.txt");
+        let response = clamav_client::smol::scan_buffer(buffer, CLAMD_HOST_TCP, None)
+            .await
+            .expect(&err_msg);
+        assert_eq!(&response, EICAR_FILE_SIGNATURE_FOUND_RESPONSE);
+        assert_eq!(clamav_client::clean(&response), Ok(false));
+    }
+
+    #[apply(test!)]
+    async fn smol_scan_tcp_clean_file() {
+        let err_msg = format!(
+            "Could not scan test file {} via TCP at {}",
+            CLEAN_TEST_FILE_PATH, CLAMD_HOST_TCP.host_address
+        );
+        let response = clamav_client::smol::scan_file(CLEAN_TEST_FILE_PATH, CLAMD_HOST_TCP, None)
+            .await
+            .expect(&err_msg);
+        assert_eq!(&response, OK_RESPONSE);
+        assert_eq!(clamav_client::clean(&response), Ok(true));
+    }
+
+    #[apply(test!)]
+    async fn smol_scan_tcp_oversized_file() {
+        let err_msg = format!(
+            "Could not scan test file {} via TCP at {}",
+            OVERSIZED_TEST_FILE_PATH, CLAMD_HOST_TCP.host_address
+        );
+        let response =
+            clamav_client::smol::scan_file(OVERSIZED_TEST_FILE_PATH, CLAMD_HOST_TCP, None)
+                .await
+                .expect(&err_msg);
+        assert_eq!(&response, SIZE_LIMIT_EXCEEDED_ERROR_RESPONSE);
+        assert_eq!(clamav_client::clean(&response), Ok(false));
+    }
+
+    #[apply(test!)]
+    async fn smol_implements_send_sync_trait() {
+        assert_implements_send_sync(
+            clamav_client::smol::scan_buffer(&[], CLAMD_HOST_TCP, None).await,
+        );
+
+        #[cfg(unix)]
+        {
+            assert_implements_send_sync(
+                clamav_client::smol::scan_buffer(&[], CLAMD_HOST_SOCKET, None).await,
+            );
+        }
+    }
+}
