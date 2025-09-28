@@ -13,7 +13,7 @@ jobs:
       - name: Verify MSRV
         run: |
           cargo install cargo-msrv --locked
-          cargo msrv verify
+          cargo msrv verify --all-features
       - name: Start ClamAV daemon
         uses: toblux/start-clamd-github-action@v0.2
         with:
