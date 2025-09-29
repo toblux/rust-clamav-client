@@ -4,7 +4,7 @@ A simple ClamAV client for sending files, in-memory data, and data streams to `c
 
 Check out the [examples](#examples) below, the [integration tests](tests/clamav_client.rs), or the [API documentation](https://docs.rs/clamav-client) to learn how to use this library.
 
-The integration tests run against a lightweight ClamAV daemon that I published as a [GitHub Action](https://github.com/marketplace/actions/clamav-daemon).
+The integration tests run against a lightweight ClamAV daemon that's available as a separate [GitHub Action](https://github.com/marketplace/actions/clamav-daemon).
 
 [![Build status](https://github.com/toblux/rust-clamav-client/actions/workflows/test.yml/badge.svg)](https://github.com/toblux/rust-clamav-client/actions)
 [![Crates.io](https://img.shields.io/crates/v/clamav-client.svg)](https://crates.io/crates/clamav-client)
