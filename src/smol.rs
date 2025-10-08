@@ -136,6 +136,17 @@ impl<P: AsRef<Path>> TransportProtocol for Socket<P> {
     }
 }
 
+impl<T> TransportProtocol for &T
+where
+    T: TransportProtocol,
+{
+    type Stream = T::Stream;
+
+    fn connect(&self) -> impl std::future::Future<Output = io::Result<Self::Stream>> {
+        TransportProtocol::connect(*self)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

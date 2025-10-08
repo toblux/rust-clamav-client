@@ -154,6 +154,17 @@ impl<P: AsRef<Path>> TransportProtocol for Socket<P> {
     }
 }
 
+impl<T> TransportProtocol for &T
+where
+    T: TransportProtocol,
+{
+    type Stream = T::Stream;
+
+    fn connect(&self) -> io::Result<Self::Stream> {
+        TransportProtocol::connect(*self)
+    }
+}
+
 /// Sends a ping request to ClamAV
 ///
 /// This function establishes a connection to a ClamAV server and sends the PING
