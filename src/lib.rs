@@ -154,10 +154,7 @@ impl<P: AsRef<Path>> TransportProtocol for Socket<P> {
     }
 }
 
-impl<T> TransportProtocol for &T
-where
-    T: TransportProtocol,
-{
+impl<T: TransportProtocol> TransportProtocol for &T {
     type Stream = T::Stream;
 
     fn connect(&self) -> io::Result<Self::Stream> {
