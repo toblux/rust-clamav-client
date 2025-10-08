@@ -15,35 +15,35 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-clamav-client = "2.1.0"
+clamav-client = "2.2.0"
 ```
 
 To use the `async` functions in `clamav_client::tokio`, add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-clamav-client = { version = "2.1.0", features = ["tokio"] }
+clamav-client = { version = "2.2.0", features = ["tokio"] }
 ```
 
 To scan Tokio streams, enable the `tokio-stream` feature and add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-clamav-client = { version = "2.1.0", features = ["tokio-stream"] }
+clamav-client = { version = "2.2.0", features = ["tokio-stream"] }
 ```
 
 Support for `smol` is available since version 2.1.0 by enabling the `smol` feature:
 
 ```toml
 [dependencies]
-clamav-client = { version = "2.1.0", features = ["smol"] }
+clamav-client = { version = "2.2.0", features = ["smol"] }
 ```
 
 Support for `async-std` is still available, but `async-std` itself has been discontinued in favor of `smol`. You can enable it with the `async-std` feature:
 
 ```toml
 [dependencies]
-clamav-client = { version = "2.1.0", features = ["async-std"] }
+clamav-client = { version = "2.2.0", features = ["async-std"] }
 ```
 
 ## Migrations
