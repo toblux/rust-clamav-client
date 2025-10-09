@@ -282,11 +282,11 @@ pub fn scan_file<P: AsRef<Path>, T: TransportProtocol>(
 
 /// Scans a file for viruses
 ///
-/// This function send `file_path`
+/// This function scan a file or a directory (recursively).
 ///
 /// # Arguments
 ///
-/// * `file_path`: The path to the file to be scanned
+/// * `file_path`: The path to the file or a the directory to be scanned. A full path is required.
 /// * `connection`: The connection type to use - either TCP or a Unix socket connection
 ///
 /// # Returns
@@ -308,11 +308,12 @@ pub fn scan_file_path<P: AsRef<Path>, T: TransportProtocol>(
 
 /// Scans a file for viruses
 ///
-/// This function send `file_path`
+/// This function scan a file or a directory (recursively).
+/// It works just like `scan_file_path` except that it sets a mode where scanning continues after finding a match within a file.
 ///
 /// # Arguments
 ///
-/// * `file_path`: The path to the file to be scanned
+/// * `file_path`: The path to the file or a the directory to be scanned. A full path is required.
 /// * `connection`: The connection type to use - either TCP or a Unix socket connection
 ///
 /// # Returns
