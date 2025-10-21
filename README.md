@@ -269,3 +269,4 @@ Contributions are welcome!
 - [Sean Clarke](https://github.com/SeanEClarke)
 - [Kanji Tanaka](https://github.com/kaicoh)
 - [Raui Ghazaleh](https://github.com/raui100)
+- [Ivan Krivosheev](https://github.com/ikrivosheev)
