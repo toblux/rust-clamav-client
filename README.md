@@ -6,7 +6,7 @@ Check out the [examples](#examples) below, the [integration tests](tests/clamav_
 
 The integration tests run against a lightweight ClamAV daemon that's available as a separate [GitHub Action](https://github.com/marketplace/actions/clamav-daemon).
 
-[![Build status](https://github.com/toblux/rust-clamav-client/actions/workflows/test.yml/badge.svg)](https://github.com/toblux/rust-clamav-client/actions)
+[![Build status](https://github.com/toblux/rust-clamav-client/actions/workflows/ci.yml/badge.svg)](https://github.com/toblux/rust-clamav-client/actions)
 [![Crates.io](https://img.shields.io/crates/v/clamav-client.svg)](https://crates.io/crates/clamav-client)
 
 ## Installation
