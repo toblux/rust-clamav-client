@@ -1,25 +1,40 @@
-name: Run tests
+name: CI
 on: [push, pull_request]
 
+env:
+  RUSTFLAGS: "-D warnings"
+  CARGO_TERM_COLOR: always
+
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - run: cargo fmt --check
+      - run: cargo clippy --all-features
+
+  msrv:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Verify MSRV
+        run: |
+          cargo install cargo-msrv --locked
+          cargo msrv verify --all-features
+
   test:
     strategy:
       matrix:
         os: [macos-latest, ubuntu-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
-      - name: Check out code
-        uses: actions/checkout@v4
-      - name: Run clippy
-        run: cargo clippy --all-features
-      - name: Verify MSRV
-        run: |
-          cargo install cargo-msrv --locked
-          cargo msrv verify --all-features
+      - uses: actions/checkout@v5
       - name: Start ClamAV daemon
         uses: toblux/start-clamd-github-action@v0.2
         with:
           stream_max_length: 1000000
+      - name: Run tests without any features
+        run: cargo test -- --skip oversized
       - name: Run tests with separate features
         run: |
           cargo test --features tokio -- --skip oversized
