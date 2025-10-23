@@ -15,7 +15,7 @@ pub mod smol;
 
 use std::{
     fs::File,
-    io::{self, Error, Read, Write},
+    io::{self, BufRead, BufReader, Read, Write},
     net::{TcpStream, ToSocketAddrs},
     path::Path,
     str::{self, Utf8Error},
@@ -25,7 +25,7 @@ use std::{
 use std::os::unix::net::UnixStream;
 
 /// Custom result type
-pub type IoResult = Result<Vec<u8>, Error>;
+pub type IoResult<T = Vec<u8>> = io::Result<T>;
 
 /// Custom result type
 pub type Utf8Result = Result<bool, Utf8Error>;
@@ -34,11 +34,13 @@ pub type Utf8Result = Result<bool, Utf8Error>;
 const DEFAULT_CHUNK_SIZE: usize = 4096;
 
 /// ClamAV commands
-const PING: &[u8; 6] = b"zPING\0";
-const RELOAD: &[u8; 8] = b"zRELOAD\0";
-const VERSION: &[u8; 9] = b"zVERSION\0";
-const SHUTDOWN: &[u8; 10] = b"zSHUTDOWN\0";
-const INSTREAM: &[u8; 10] = b"zINSTREAM\0";
+const PING: &[u8; 5] = b"zPING";
+const RELOAD: &[u8; 7] = b"zRELOAD";
+const VERSION: &[u8; 8] = b"zVERSION";
+const SHUTDOWN: &[u8; 9] = b"zSHUTDOWN";
+const INSTREAM: &[u8; 9] = b"zINSTREAM";
+const SCAN: &[u8; 4] = b"SCAN";
+const ALLMATCHSCAN: &[u8; 13] = b"zALLMATCHSCAN";
 const END_OF_STREAM: &[u8; 4] = &[0, 0, 0, 0];
 
 /// ClamAV's response to a PING request
@@ -50,11 +52,18 @@ pub const RELOADING: &[u8; 10] = b"RELOADING\0";
 fn send_command<RW: Read + Write>(
     mut stream: RW,
     command: &[u8],
-    expected_response_length: Option<usize>,
-) -> IoResult {
+    args: Option<&[u8]>,
+) -> io::Result<()> {
     stream.write_all(command)?;
-    stream.flush()?;
+    if let Some(args) = args {
+        stream.write_all(b" ")?;
+        stream.write_all(args)?;
+    }
+    stream.write_all(b"\0")?;
+    stream.flush()
+}
 
+fn read_response<W: Read>(mut stream: W, expected_response_length: Option<usize>) -> IoResult {
     let mut response = match expected_response_length {
         Some(len) => Vec::with_capacity(len),
         None => Vec::new(),
@@ -69,7 +78,7 @@ fn scan<R: Read, RW: Read + Write>(
     chunk_size: Option<usize>,
     mut stream: RW,
 ) -> IoResult {
-    stream.write_all(INSTREAM)?;
+    send_command(&mut stream, INSTREAM, None)?;
 
     let chunk_size = chunk_size
         .unwrap_or(DEFAULT_CHUNK_SIZE)
@@ -87,9 +96,7 @@ fn scan<R: Read, RW: Read + Write>(
         }
     }
 
-    let mut response = Vec::new();
-    stream.read_to_end(&mut response)?;
-    Ok(response)
+    read_response(stream, None)
 }
 
 /// Checks whether the ClamAV response indicates that the scanned content is
@@ -187,8 +194,9 @@ impl<T: TransportProtocol> TransportProtocol for &T {
 /// ```
 ///
 pub fn ping<T: TransportProtocol>(connection: T) -> IoResult {
-    let stream = connection.connect()?;
-    send_command(stream, PING, Some(PONG.len()))
+    let mut stream = connection.connect()?;
+    send_command(&mut stream, PING, None)?;
+    read_response(stream, Some(PONG.len()))
 }
 
 /// Reloads the virus databases
@@ -214,8 +222,9 @@ pub fn ping<T: TransportProtocol>(connection: T) -> IoResult {
 /// ```
 ///
 pub fn reload<T: TransportProtocol>(connection: T) -> IoResult {
-    let stream = connection.connect()?;
-    send_command(stream, RELOAD, Some(RELOADING.len()))
+    let mut stream = connection.connect()?;
+    send_command(&mut stream, RELOAD, None)?;
+    read_response(stream, Some(RELOADING.len()))
 }
 
 /// Gets the version number from ClamAV
@@ -241,8 +250,9 @@ pub fn reload<T: TransportProtocol>(connection: T) -> IoResult {
 /// ```
 ///
 pub fn get_version<T: TransportProtocol>(connection: T) -> IoResult {
-    let stream = connection.connect()?;
-    send_command(stream, VERSION, None)
+    let mut stream = connection.connect()?;
+    send_command(&mut stream, VERSION, None)?;
+    read_response(stream, None)
 }
 
 /// Scans a file for viruses
@@ -268,6 +278,59 @@ pub fn scan_file<P: AsRef<Path>, T: TransportProtocol>(
     let file = File::open(file_path)?;
     let stream = connection.connect()?;
     scan(file, chunk_size, stream)
+}
+
+/// Scans a file for viruses
+///
+/// This function scan a file or a directory (recursively).
+///
+/// # Arguments
+///
+/// * `file_path`: The path to the file or a the directory to be scanned. A full path is required.
+/// * `connection`: The connection type to use - either TCP or a Unix socket connection
+///
+/// # Returns
+///
+/// An [`IoResult`] containing the server's response as a vector of bytes
+///
+pub fn scan_file_path<P: AsRef<Path>, T: TransportProtocol>(
+    file_path: P,
+    connection: T,
+) -> IoResult {
+    let mut stream = connection.connect()?;
+    send_command(
+        &mut stream,
+        SCAN,
+        Some(file_path.as_ref().as_os_str().as_encoded_bytes()),
+    )?;
+    read_response(stream, None)
+}
+
+/// Scans a file for viruses
+///
+/// This function scan a file or a directory (recursively).
+/// It works just like `scan_file_path` except that it sets a mode where scanning continues after finding a match within a file.
+///
+/// # Arguments
+///
+/// * `file_path`: The path to the file or a the directory to be scanned. A full path is required.
+/// * `connection`: The connection type to use - either TCP or a Unix socket connection
+///
+/// # Returns
+///
+/// An [`IoResult`] containing the lines iterator over server's response
+///
+pub fn allmatchscan_file_path<P: AsRef<Path>, T: TransportProtocol>(
+    file_path: P,
+    connection: T,
+) -> IoResult<impl Iterator<Item = IoResult<Vec<u8>>>> {
+    let mut stream = connection.connect()?;
+    send_command(
+        &mut stream,
+        ALLMATCHSCAN,
+        Some(file_path.as_ref().as_os_str().as_encoded_bytes()),
+    )?;
+    Ok(BufReader::new(stream).split(b'\n'))
 }
 
 /// Scans a data buffer for viruses
@@ -309,6 +372,7 @@ pub fn scan_buffer<T: TransportProtocol>(
 /// An [`IoResult`] containing the server's response
 ///
 pub fn shutdown<T: TransportProtocol>(connection: T) -> IoResult {
-    let stream = connection.connect()?;
-    send_command(stream, SHUTDOWN, None)
+    let mut stream = connection.connect()?;
+    send_command(&mut stream, SHUTDOWN, None)?;
+    read_response(stream, None)
 }
