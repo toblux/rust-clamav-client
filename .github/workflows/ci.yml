@@ -9,14 +9,14 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - run: cargo fmt --check
       - run: cargo clippy --all-features
 
   msrv:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: Verify MSRV
         run: |
           cargo install cargo-msrv --locked
@@ -28,7 +28,7 @@ jobs:
         os: [macos-latest, ubuntu-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: Start ClamAV daemon
         uses: toblux/start-clamd-github-action@v0.2
         with:
