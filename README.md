@@ -92,7 +92,7 @@ if !clamd_available {
 assert!(clamd_available);
 
 // Scan file for viruses
-let file_path = "tests/data/eicar.txt";
+let file_path = "tests/data/virus.txt";
 let scan_file_response = clamav_client::scan_file(file_path, clamd_tcp, None).unwrap();
 let file_clean = clamav_client::clean(&scan_file_response).unwrap();
 if file_clean {
@@ -103,7 +103,7 @@ if file_clean {
 assert!(!file_clean);
 
 // Scan in-memory data for viruses
-let buffer = br#"X5O!P%@AP[4\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*"#;
+let buffer = b"rust-clamav-client-virus-test-string";
 let scan_buffer_response = clamav_client::scan_buffer(buffer, clamd_tcp, None).unwrap();
 let data_clean = clamav_client::clean(&scan_buffer_response).unwrap();
 if data_clean {
@@ -133,8 +133,8 @@ tokio::runtime::Builder::new_current_thread().enable_all().build().unwrap().bloc
     }
     assert!(clamd_available);
 
-    let file_path = "tests/data/eicar.txt";
-    let buffer = br#"X5O!P%@AP[4\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*"#;
+    let file_path = "tests/data/virus.txt";
+    let buffer = b"rust-clamav-client-virus-test-string";
     let file = tokio::fs::File::open(file_path).await.unwrap();
     let stream = tokio_util::io::ReaderStream::new(file);
 
@@ -194,7 +194,7 @@ smol::block_on(async {
     assert!(clamd_available);
 
     // Scan a file for viruses
-    let file_path = "tests/data/eicar.txt";
+    let file_path = "tests/data/virus.txt";
     let scan_file_result = clamav_client::smol::scan_file(file_path, clamd_tcp, None).await;
     let scan_file_response = scan_file_result.unwrap();
     let file_clean = clamav_client::clean(&scan_file_response).unwrap();
@@ -227,7 +227,7 @@ async_std::task::block_on(async {
     assert!(clamd_available);
 
     // Scan a file for viruses
-    let file_path = "tests/data/eicar.txt";
+    let file_path = "tests/data/virus.txt";
     let scan_file_result = clamav_client::async_std::scan_file(file_path, clamd_tcp, None).await;
     let scan_file_response = scan_file_result.unwrap();
     let file_clean = clamav_client::clean(&scan_file_response).unwrap();
