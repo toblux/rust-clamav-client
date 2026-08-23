@@ -1,5 +1,2 @@
 /target
 Cargo.lock
-
-# ClamAV files
-*.cvd

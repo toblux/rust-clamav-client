@@ -1,10 +1,10 @@
 #[cfg(unix)]
 const TEST_SOCKET_PATH: &str = "/tmp/clamd.socket";
 const TEST_HOST_ADDRESS: &str = "localhost:3310";
-const EICAR_TEST_FILE_PATH: &str = "tests/data/eicar.txt";
-const CLEAN_TEST_FILE_PATH: &str = "README.md";
+const VIRUS_TEST_FILE_PATH: &str = "tests/data/virus.txt";
+const CLEAN_TEST_FILE_PATH: &str = "tests/data/clean.txt";
 
-const EICAR_FILE_SIGNATURE_FOUND_RESPONSE: &[u8] = b"stream: Eicar-Signature FOUND\0";
+const VIRUS_TEST_SIGNATURE_FOUND_RESPONSE: &[u8] = b"stream: Test.ClamAVClient.UNOFFICIAL FOUND\0";
 const OK_RESPONSE: &[u8] = b"stream: OK\0";
 
 // `StreamMaxLength` is limited to 1 MB (1_000_000 bytes) in `clamd.conf` - this
@@ -61,11 +61,11 @@ mod lib_tests {
     fn scan_socket_infected_file() {
         let err_msg = format!(
             "Could not scan test file {} via socket at {}",
-            EICAR_TEST_FILE_PATH, CLAMD_HOST_SOCKET.socket_path
+            VIRUS_TEST_FILE_PATH, CLAMD_HOST_SOCKET.socket_path
         );
-        let response = clamav_client::scan_file(EICAR_TEST_FILE_PATH, CLAMD_HOST_SOCKET, None)
+        let response = clamav_client::scan_file(VIRUS_TEST_FILE_PATH, CLAMD_HOST_SOCKET, None)
             .expect(&err_msg);
-        assert_eq!(&response, EICAR_FILE_SIGNATURE_FOUND_RESPONSE);
+        assert_eq!(&response, VIRUS_TEST_SIGNATURE_FOUND_RESPONSE);
         assert_eq!(clamav_client::clean(&response), Ok(false));
     }
 
@@ -73,12 +73,12 @@ mod lib_tests {
     #[cfg(unix)]
     fn scan_socket_infected_buffer() {
         let err_msg = format!(
-            "Could not scan EICAR test string via socket at {}",
+            "Could not scan virus test string via socket at {}",
             CLAMD_HOST_SOCKET.socket_path
         );
-        let buffer = include_bytes!("data/eicar.txt");
+        let buffer = include_bytes!("data/virus.txt");
         let response = clamav_client::scan_buffer(buffer, CLAMD_HOST_SOCKET, None).expect(&err_msg);
-        assert_eq!(&response, EICAR_FILE_SIGNATURE_FOUND_RESPONSE);
+        assert_eq!(&response, VIRUS_TEST_SIGNATURE_FOUND_RESPONSE);
         assert_eq!(clamav_client::clean(&response), Ok(false));
     }
 
@@ -132,11 +132,11 @@ mod lib_tests {
     fn scan_tcp_infected_file() {
         let err_msg = format!(
             "Could not scan test file {} via TCP at {}",
-            EICAR_TEST_FILE_PATH, CLAMD_HOST_TCP.host_address
+            VIRUS_TEST_FILE_PATH, CLAMD_HOST_TCP.host_address
         );
         let response =
-            clamav_client::scan_file(EICAR_TEST_FILE_PATH, CLAMD_HOST_TCP, None).expect(&err_msg);
-        assert_eq!(&response, EICAR_FILE_SIGNATURE_FOUND_RESPONSE);
+            clamav_client::scan_file(VIRUS_TEST_FILE_PATH, CLAMD_HOST_TCP, None).expect(&err_msg);
+        assert_eq!(&response, VIRUS_TEST_SIGNATURE_FOUND_RESPONSE);
         assert_eq!(clamav_client::clean(&response), Ok(false));
     }
 
@@ -155,12 +155,12 @@ mod lib_tests {
     #[test]
     fn scan_tcp_infected_buffer() {
         let err_msg = format!(
-            "Could not scan EICAR test string via TCP at {}",
+            "Could not scan virus test string via TCP at {}",
             CLAMD_HOST_TCP.host_address
         );
-        let buffer = include_bytes!("data/eicar.txt");
+        let buffer = include_bytes!("data/virus.txt");
         let response = clamav_client::scan_buffer(buffer, CLAMD_HOST_TCP, None).expect(&err_msg);
-        assert_eq!(&response, EICAR_FILE_SIGNATURE_FOUND_RESPONSE);
+        assert_eq!(&response, VIRUS_TEST_SIGNATURE_FOUND_RESPONSE);
         assert_eq!(clamav_client::clean(&response), Ok(false));
     }
 
@@ -221,13 +221,13 @@ mod tokio_tests {
     async fn async_tokio_scan_socket_infected_file() {
         let err_msg = format!(
             "Could not scan test file {} via socket at {}",
-            EICAR_TEST_FILE_PATH, CLAMD_HOST_SOCKET.socket_path
+            VIRUS_TEST_FILE_PATH, CLAMD_HOST_SOCKET.socket_path
         );
         let response =
-            clamav_client::tokio::scan_file(EICAR_TEST_FILE_PATH, CLAMD_HOST_SOCKET, None)
+            clamav_client::tokio::scan_file(VIRUS_TEST_FILE_PATH, CLAMD_HOST_SOCKET, None)
                 .await
                 .expect(&err_msg);
-        assert_eq!(&response, EICAR_FILE_SIGNATURE_FOUND_RESPONSE);
+        assert_eq!(&response, VIRUS_TEST_SIGNATURE_FOUND_RESPONSE);
         assert_eq!(clamav_client::clean(&response), Ok(false));
     }
 
@@ -235,14 +235,14 @@ mod tokio_tests {
     #[cfg(unix)]
     async fn async_tokio_scan_socket_infected_buffer() {
         let err_msg = format!(
-            "Could not scan EICAR test string via socket at {}",
+            "Could not scan virus test string via socket at {}",
             CLAMD_HOST_SOCKET.socket_path
         );
-        let buffer = include_bytes!("data/eicar.txt");
+        let buffer = include_bytes!("data/virus.txt");
         let response = clamav_client::tokio::scan_buffer(buffer, CLAMD_HOST_SOCKET, None)
             .await
             .expect(&err_msg);
-        assert_eq!(&response, EICAR_FILE_SIGNATURE_FOUND_RESPONSE);
+        assert_eq!(&response, VIRUS_TEST_SIGNATURE_FOUND_RESPONSE);
         assert_eq!(clamav_client::clean(&response), Ok(false));
     }
 
@@ -304,26 +304,26 @@ mod tokio_tests {
     async fn async_tokio_scan_tcp_infected_file() {
         let err_msg = format!(
             "Could not scan test file {} via TCP at {}",
-            EICAR_TEST_FILE_PATH, CLAMD_HOST_TCP.host_address
+            VIRUS_TEST_FILE_PATH, CLAMD_HOST_TCP.host_address
         );
-        let response = clamav_client::tokio::scan_file(EICAR_TEST_FILE_PATH, CLAMD_HOST_TCP, None)
+        let response = clamav_client::tokio::scan_file(VIRUS_TEST_FILE_PATH, CLAMD_HOST_TCP, None)
             .await
             .expect(&err_msg);
-        assert_eq!(&response, EICAR_FILE_SIGNATURE_FOUND_RESPONSE);
+        assert_eq!(&response, VIRUS_TEST_SIGNATURE_FOUND_RESPONSE);
         assert_eq!(clamav_client::clean(&response), Ok(false));
     }
 
     #[tokio::test]
     async fn async_tokio_scan_tcp_infected_buffer() {
         let err_msg = format!(
-            "Could not scan EICAR test string via TCP at {}",
+            "Could not scan virus test string via TCP at {}",
             CLAMD_HOST_TCP.host_address
         );
-        let buffer = include_bytes!("data/eicar.txt");
+        let buffer = include_bytes!("data/virus.txt");
         let response = clamav_client::tokio::scan_buffer(buffer, CLAMD_HOST_TCP, None)
             .await
             .expect(&err_msg);
-        assert_eq!(&response, EICAR_FILE_SIGNATURE_FOUND_RESPONSE);
+        assert_eq!(&response, VIRUS_TEST_SIGNATURE_FOUND_RESPONSE);
         assert_eq!(clamav_client::clean(&response), Ok(false));
     }
 
@@ -395,16 +395,16 @@ mod tokio_stream_tests {
     #[tokio::test]
     #[cfg(unix)]
     async fn async_tokio_scan_socket_infected_stream() {
-        let stream = stream_from_file(EICAR_TEST_FILE_PATH).await;
+        let stream = stream_from_file(VIRUS_TEST_FILE_PATH).await;
 
         let err_msg = format!(
             "Could not scan test file {} via socket at {}",
-            EICAR_TEST_FILE_PATH, CLAMD_HOST_SOCKET.socket_path
+            VIRUS_TEST_FILE_PATH, CLAMD_HOST_SOCKET.socket_path
         );
         let response = clamav_client::tokio::scan_stream(stream, CLAMD_HOST_SOCKET, None)
             .await
             .expect(&err_msg);
-        assert_eq!(&response, EICAR_FILE_SIGNATURE_FOUND_RESPONSE);
+        assert_eq!(&response, VIRUS_TEST_SIGNATURE_FOUND_RESPONSE);
         assert_eq!(clamav_client::clean(&response), Ok(false));
     }
 
@@ -442,16 +442,16 @@ mod tokio_stream_tests {
 
     #[tokio::test]
     async fn async_tokio_scan_tcp_infected_stream() {
-        let stream = stream_from_file(EICAR_TEST_FILE_PATH).await;
+        let stream = stream_from_file(VIRUS_TEST_FILE_PATH).await;
 
         let err_msg = format!(
             "Could not scan test file {} via TCP at {}",
-            EICAR_TEST_FILE_PATH, CLAMD_HOST_TCP.host_address
+            VIRUS_TEST_FILE_PATH, CLAMD_HOST_TCP.host_address
         );
         let response = clamav_client::tokio::scan_stream(stream, CLAMD_HOST_TCP, None)
             .await
             .expect(&err_msg);
-        assert_eq!(&response, EICAR_FILE_SIGNATURE_FOUND_RESPONSE);
+        assert_eq!(&response, VIRUS_TEST_SIGNATURE_FOUND_RESPONSE);
         assert_eq!(clamav_client::clean(&response), Ok(false));
     }
 
@@ -531,13 +531,13 @@ mod async_std_tests {
     async fn async_std_scan_socket_infected_file() {
         let err_msg = format!(
             "Could not scan test file {} via socket at {}",
-            EICAR_TEST_FILE_PATH, CLAMD_HOST_SOCKET.socket_path
+            VIRUS_TEST_FILE_PATH, CLAMD_HOST_SOCKET.socket_path
         );
         let response =
-            clamav_client::async_std::scan_file(EICAR_TEST_FILE_PATH, CLAMD_HOST_SOCKET, None)
+            clamav_client::async_std::scan_file(VIRUS_TEST_FILE_PATH, CLAMD_HOST_SOCKET, None)
                 .await
                 .expect(&err_msg);
-        assert_eq!(&response, EICAR_FILE_SIGNATURE_FOUND_RESPONSE);
+        assert_eq!(&response, VIRUS_TEST_SIGNATURE_FOUND_RESPONSE);
         assert_eq!(clamav_client::clean(&response), Ok(false));
     }
 
@@ -545,14 +545,14 @@ mod async_std_tests {
     #[cfg(unix)]
     async fn async_std_scan_socket_infected_buffer() {
         let err_msg = format!(
-            "Could not scan EICAR test string via socket at {}",
+            "Could not scan virus test string via socket at {}",
             CLAMD_HOST_SOCKET.socket_path
         );
-        let buffer = include_bytes!("data/eicar.txt");
+        let buffer = include_bytes!("data/virus.txt");
         let response = clamav_client::async_std::scan_buffer(buffer, CLAMD_HOST_SOCKET, None)
             .await
             .expect(&err_msg);
-        assert_eq!(&response, EICAR_FILE_SIGNATURE_FOUND_RESPONSE);
+        assert_eq!(&response, VIRUS_TEST_SIGNATURE_FOUND_RESPONSE);
         assert_eq!(clamav_client::clean(&response), Ok(false));
     }
 
@@ -614,27 +614,27 @@ mod async_std_tests {
     async fn async_std_scan_tcp_infected_file() {
         let err_msg = format!(
             "Could not scan test file {} via TCP at {}",
-            EICAR_TEST_FILE_PATH, CLAMD_HOST_TCP.host_address
+            VIRUS_TEST_FILE_PATH, CLAMD_HOST_TCP.host_address
         );
         let response =
-            clamav_client::async_std::scan_file(EICAR_TEST_FILE_PATH, CLAMD_HOST_TCP, None)
+            clamav_client::async_std::scan_file(VIRUS_TEST_FILE_PATH, CLAMD_HOST_TCP, None)
                 .await
                 .expect(&err_msg);
-        assert_eq!(&response, EICAR_FILE_SIGNATURE_FOUND_RESPONSE);
+        assert_eq!(&response, VIRUS_TEST_SIGNATURE_FOUND_RESPONSE);
         assert_eq!(clamav_client::clean(&response), Ok(false));
     }
 
     #[async_std::test]
     async fn async_std_scan_tcp_infected_buffer() {
         let err_msg = format!(
-            "Could not scan EICAR test string via TCP at {}",
+            "Could not scan virus test string via TCP at {}",
             CLAMD_HOST_TCP.host_address
         );
-        let buffer = include_bytes!("data/eicar.txt");
+        let buffer = include_bytes!("data/virus.txt");
         let response = clamav_client::async_std::scan_buffer(buffer, CLAMD_HOST_TCP, None)
             .await
             .expect(&err_msg);
-        assert_eq!(&response, EICAR_FILE_SIGNATURE_FOUND_RESPONSE);
+        assert_eq!(&response, VIRUS_TEST_SIGNATURE_FOUND_RESPONSE);
         assert_eq!(clamav_client::clean(&response), Ok(false));
     }
 
@@ -710,15 +710,15 @@ mod async_std_stream_tests {
     #[async_std::test]
     #[cfg(unix)]
     async fn async_std_scan_socket_infected_stream() {
-        let stream = stream_from_file(EICAR_TEST_FILE_PATH).await;
+        let stream = stream_from_file(VIRUS_TEST_FILE_PATH).await;
         let err_msg = format!(
             "Could not scan test file {} via socket at {}",
-            EICAR_TEST_FILE_PATH, CLAMD_HOST_SOCKET.socket_path
+            VIRUS_TEST_FILE_PATH, CLAMD_HOST_SOCKET.socket_path
         );
         let response = clamav_client::async_std::scan_stream(stream, CLAMD_HOST_SOCKET, None)
             .await
             .expect(&err_msg);
-        assert_eq!(&response, EICAR_FILE_SIGNATURE_FOUND_RESPONSE);
+        assert_eq!(&response, VIRUS_TEST_SIGNATURE_FOUND_RESPONSE);
         assert_eq!(clamav_client::clean(&response), Ok(false));
     }
 
@@ -754,15 +754,15 @@ mod async_std_stream_tests {
 
     #[async_std::test]
     async fn async_std_scan_tcp_infected_stream() {
-        let stream = stream_from_file(EICAR_TEST_FILE_PATH).await;
+        let stream = stream_from_file(VIRUS_TEST_FILE_PATH).await;
         let err_msg = format!(
             "Could not scan test file {} via TCP at {}",
-            EICAR_TEST_FILE_PATH, CLAMD_HOST_TCP.host_address
+            VIRUS_TEST_FILE_PATH, CLAMD_HOST_TCP.host_address
         );
         let response = clamav_client::async_std::scan_stream(stream, CLAMD_HOST_TCP, None)
             .await
             .expect(&err_msg);
-        assert_eq!(&response, EICAR_FILE_SIGNATURE_FOUND_RESPONSE);
+        assert_eq!(&response, VIRUS_TEST_SIGNATURE_FOUND_RESPONSE);
         assert_eq!(clamav_client::clean(&response), Ok(false));
     }
 
@@ -841,13 +841,13 @@ mod smol_tests {
     async fn smol_scan_socket_infected_file() {
         let err_msg = format!(
             "Could not scan test file {} via socket at {}",
-            EICAR_TEST_FILE_PATH, CLAMD_HOST_SOCKET.socket_path
+            VIRUS_TEST_FILE_PATH, CLAMD_HOST_SOCKET.socket_path
         );
         let response =
-            clamav_client::smol::scan_file(EICAR_TEST_FILE_PATH, CLAMD_HOST_SOCKET, None)
+            clamav_client::smol::scan_file(VIRUS_TEST_FILE_PATH, CLAMD_HOST_SOCKET, None)
                 .await
                 .expect(&err_msg);
-        assert_eq!(&response, EICAR_FILE_SIGNATURE_FOUND_RESPONSE);
+        assert_eq!(&response, VIRUS_TEST_SIGNATURE_FOUND_RESPONSE);
         assert_eq!(clamav_client::clean(&response), Ok(false));
     }
 
@@ -855,14 +855,14 @@ mod smol_tests {
     #[cfg(unix)]
     async fn smol_scan_socket_infected_buffer() {
         let err_msg = format!(
-            "Could not scan EICAR test string via socket at {}",
+            "Could not scan virus test string via socket at {}",
             CLAMD_HOST_SOCKET.socket_path
         );
-        let buffer = include_bytes!("data/eicar.txt");
+        let buffer = include_bytes!("data/virus.txt");
         let response = clamav_client::smol::scan_buffer(buffer, CLAMD_HOST_SOCKET, None)
             .await
             .expect(&err_msg);
-        assert_eq!(&response, EICAR_FILE_SIGNATURE_FOUND_RESPONSE);
+        assert_eq!(&response, VIRUS_TEST_SIGNATURE_FOUND_RESPONSE);
         assert_eq!(clamav_client::clean(&response), Ok(false));
     }
 
@@ -924,26 +924,26 @@ mod smol_tests {
     async fn smol_scan_tcp_infected_file() {
         let err_msg = format!(
             "Could not scan test file {} via TCP at {}",
-            EICAR_TEST_FILE_PATH, CLAMD_HOST_TCP.host_address
+            VIRUS_TEST_FILE_PATH, CLAMD_HOST_TCP.host_address
         );
-        let response = clamav_client::smol::scan_file(EICAR_TEST_FILE_PATH, CLAMD_HOST_TCP, None)
+        let response = clamav_client::smol::scan_file(VIRUS_TEST_FILE_PATH, CLAMD_HOST_TCP, None)
             .await
             .expect(&err_msg);
-        assert_eq!(&response, EICAR_FILE_SIGNATURE_FOUND_RESPONSE);
+        assert_eq!(&response, VIRUS_TEST_SIGNATURE_FOUND_RESPONSE);
         assert_eq!(clamav_client::clean(&response), Ok(false));
     }
 
     #[apply(test!)]
     async fn smol_scan_tcp_infected_buffer() {
         let err_msg = format!(
-            "Could not scan EICAR test string via TCP at {}",
+            "Could not scan virus test string via TCP at {}",
             CLAMD_HOST_TCP.host_address
         );
-        let buffer = include_bytes!("data/eicar.txt");
+        let buffer = include_bytes!("data/virus.txt");
         let response = clamav_client::smol::scan_buffer(buffer, CLAMD_HOST_TCP, None)
             .await
             .expect(&err_msg);
-        assert_eq!(&response, EICAR_FILE_SIGNATURE_FOUND_RESPONSE);
+        assert_eq!(&response, VIRUS_TEST_SIGNATURE_FOUND_RESPONSE);
         assert_eq!(clamav_client::clean(&response), Ok(false));
     }
 

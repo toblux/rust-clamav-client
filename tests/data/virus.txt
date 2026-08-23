@@ -1,0 +1,1 @@
+rust-clamav-client-virus-test-string

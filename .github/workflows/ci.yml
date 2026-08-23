@@ -30,9 +30,10 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: Start ClamAV daemon
-        uses: toblux/start-clamd-github-action@v0.2
+        uses: toblux/start-clamd-github-action@v0.3
         with:
           stream_max_length: 1000000
+          db_dir: clamd/database
       - name: Run tests without any features
         run: cargo test -- --skip oversized
       - name: Run tests with separate features

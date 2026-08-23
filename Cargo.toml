@@ -11,7 +11,7 @@ description = "ClamAV client library with optional support for async-std, smol, 
 readme = "README.md"
 license = "MIT"
 keywords = ["clamav", "clamd", "anitvirus", "smol", "tokio"]
-exclude = ["clamd", ".github"]
+exclude = ["clamd/clamd.conf", ".github"]
 
 [dependencies]
 tokio = { version = "1.34.0", default-features = false, features = ["fs", "io-util", "net"], optional = true }
